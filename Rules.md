@@ -10,10 +10,10 @@ To keep our codebase clean, professional, and conflict-free, everyone must follo
 - Always create a new branch from `main` before starting your work.
 
 **Branch Types:**
-- **Features:** `feat/your-name/short-description`  
-  Example: `feat/arun/add-location-model`
-- **Bug Fixes:** `fix/your-name/short-description`  
-  Example: `fix/aditya/fix-login-crash`
+- **Features:** `feat/your-jira-ticket/short-description`  
+  Example: `feat/GHPS-03/add-location-model`
+- **Bug Fixes:** `fix/your-jira-ticket/short-description`  
+  Example: `fix/GHPS-11/fix-login-crash`
 
 ---
 
