@@ -13,7 +13,7 @@ public partial class Audit
 
     public string Resource { get; set; } = null!;
 
-    public DateTime? Timestamp { get; set; }
+    public DateTime? EventTimestamp { get; set; }
 
     public string? Metadata { get; set; }
 
