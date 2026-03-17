@@ -32,18 +32,18 @@ public partial class PharmaStockContext : DbContext
             entity.ToTable("Audit");
 
             entity.Property(e => e.AuditId).HasColumnName("AuditID");
+            entity.Property(e => e.EventTimestamp)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.Resource)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Timestamp)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
             entity.HasOne(d => d.User).WithMany(p => p.Audits)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Audit__UserID__5441852A");
+                .HasConstraintName("FK_Audit_User");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -89,7 +89,7 @@ public partial class PharmaStockContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__User__RoleID__5070F446");
+                .HasConstraintName("FK_User_Role");
         });
 
         modelBuilder.Entity<UserRole>(entity =>
