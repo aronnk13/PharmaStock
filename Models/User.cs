@@ -7,21 +7,27 @@ public partial class User
 {
     public int UserId { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string Username { get; set; } = null!;
 
-    public string Role { get; set; } = null!;
+    public int RoleId { get; set; }
 
     public string Email { get; set; } = null!;
 
     public string Phone { get; set; } = null!;
 
-    public string Status { get; set; } = null!;
+    public DateTime? CreatedOn { get; set; }
 
-    public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+    public string CreatedBy { get; set; } = null!;
 
-    public virtual ICollection<GoodsReceipt> GoodsReceipts { get; set; } = new List<GoodsReceipt>();
+    public DateTime? UpdatedOn { get; set; }
 
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public string UpdatedBy { get; set; } = null!;
 
-    public virtual ICollection<StockAdjustment> StockAdjustments { get; set; } = new List<StockAdjustment>();
+    public bool StatusId { get; set; }
+
+    public string PasswordHash { get; set; } = null!;
+
+    public virtual ICollection<Audit> Audits { get; set; } = new List<Audit>();
+
+    public virtual UserRole Role { get; set; } = null!;
 }
