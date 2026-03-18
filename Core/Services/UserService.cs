@@ -10,7 +10,7 @@ namespace PharmaStock.Core.Services
     {
         public async Task RegisterUser(UserRegistrationDTO userRegistrationDTO, int admindId)
         {
-            User admin = await userRepository.GetByIdAsync(admindId);
+            // User admin = await userRepository.GetByIdAsync(admindId);
             
             User user = new User{
                 Username = userRegistrationDTO.Username,
@@ -18,9 +18,10 @@ namespace PharmaStock.Core.Services
                 Phone = userRegistrationDTO.Phone,
                 RoleId = userRegistrationDTO.RoleId,
                 PasswordHash = "defaultPassword",
-                CreatedBy = admin.Username,
+                CreatedBy = "admin.Username",
                 CreatedOn = DateTime.UtcNow,
                 UpdatedOn = DateTime.UtcNow,
+                UpdatedBy = "admin.Username",
                 StatusId = true,
             };
             await userRepository.AddAsync(user);
