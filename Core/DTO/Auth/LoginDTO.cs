@@ -1,5 +1,7 @@
 
 
+using System.ComponentModel.DataAnnotations;
+
 namespace PharmaStock.Core.DTO.Auth
 {
     public class LoginDTO

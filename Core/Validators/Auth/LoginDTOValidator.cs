@@ -7,12 +7,13 @@ namespace PharmaStock.Core.Validators.Auth
     {
         public LoginDTOValidator()
         {
-            Console.WriteLine("LoginDTO Validator is Registered and Running");
             RuleFor(u => u.Username)
-                .NotEmpty().WithMessage("Username is required");
+                .NotEmpty().WithMessage("Username is required")
+                .NotNull().WithMessage("Username cannot be Null !");
 
             RuleFor(u => u.Password)
-                .NotEmpty().WithMessage("Password is required");
+                .NotEmpty().WithMessage("Password is required")
+                .NotNull().WithMessage("Password cannot be Null !");
         }
     }
 }

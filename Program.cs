@@ -13,6 +13,7 @@ using FluentValidation.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddFluentValidationAutoValidation();
 
 // Validator registration
 builder.Services.AddValidatorsFromAssemblyContaining<LoginDTOValidator>();

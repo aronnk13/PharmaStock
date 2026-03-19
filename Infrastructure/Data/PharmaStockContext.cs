@@ -7,8 +7,7 @@ namespace PharmaStock.Models;
 public partial class PharmaStockContext : DbContext
 {
     public PharmaStockContext()
-    {
-    }
+    { }
 
     public PharmaStockContext(DbContextOptions<PharmaStockContext> options)
         : base(options)
@@ -21,8 +20,8 @@ public partial class PharmaStockContext : DbContext
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Server=LTIN718562\\SQLEXPRESS;initial catalog=PharmaStock;Trusted_Connection=true;MultipleActiveResultSets=true;TrustServerCertificate=true;Integrated Security=true;");
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //     => optionsBuilder.UseSqlServer("PharmaDbConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
