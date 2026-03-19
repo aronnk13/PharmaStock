@@ -1,15 +1,44 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-
 namespace PharmaStock.Core.DTO.Register
 {
-    public class UserRegistrationDTO
+    /// <summary>
+    /// Data Transfer Object for creating or updating a user.
+    /// Contains basic user details such as username, role, email, and phone.
+    /// </summary>
+    public class UpsertUserDTO
     {
-        public string Username { get; set; } = null!;
+        /// <summary>
+        /// The ID of the user (Used for updates, send 0 for creation).
+        /// </summary>
+        public int UserId { get; set; }
+
+        /// <summary>
+        /// The unique username chosen by the user.
+        /// </summary>
+        public string Username { get; set; }
+
+        /// <summary>
+        /// The role identifier associated with the user.
+        /// </summary>
         public int RoleId { get; set; }
 
-        public string Email { get; set; } = null!;
+        /// <summary>
+        /// The user's email address.
+        /// </summary>
+        public string Email { get; set; }
 
-        public string Phone { get; set; } = null!;
+        /// <summary>
+        /// The user's phone number.
+        /// </summary>
+        public string Phone { get; set; }
+
+        /// <summary>
+        /// The ID of the admin performing this action.
+        /// </summary>
+        public int AdminId { get; set; }
+
+        /// <summary>
+        /// Flag indicating whether this is a new user creation (true) or an update (false).
+        /// </summary>
+        public bool IsCreate { get; set; }
     }
 }
