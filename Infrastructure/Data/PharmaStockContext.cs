@@ -7,8 +7,7 @@ namespace PharmaStock.Models;
 public partial class PharmaStockContext : DbContext
 {
     public PharmaStockContext()
-    {
-    }
+    { }
 
     public PharmaStockContext(DbContextOptions<PharmaStockContext> options)
         : base(options)
@@ -21,23 +20,24 @@ public partial class PharmaStockContext : DbContext
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){}
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //     => optionsBuilder.UseSqlServer("PharmaDbConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Audit>(entity =>
         {
-            entity.HasKey(e => e.AuditId).HasName("PK__Audit__A17F23B851A6106D");
+            entity.HasKey(e => e.AuditId).HasName("PK__Audit__A17F23B83DB6828D");
 
             entity.ToTable("Audit");
 
             entity.Property(e => e.AuditId).HasColumnName("AuditID");
-            entity.Property(e => e.EventTimestamp)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
             entity.Property(e => e.Resource)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.Timestamp)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
             entity.HasOne(d => d.User).WithMany(p => p.Audits)
@@ -48,13 +48,13 @@ public partial class PharmaStockContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACAB8A0841");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC43EBEEC6");
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.Username, "UQ__User__536C85E4F4043B49").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__User__536C85E4830F8013").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D10534AC4C5534").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__User__A9D1053495815C86").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.CreatedBy)
@@ -94,7 +94,7 @@ public partial class PharmaStockContext : DbContext
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__UserRole__8AFACE3A594E5D0E");
+            entity.HasKey(e => e.RoleId).HasName("PK__UserRole__8AFACE3A577A0A3B");
 
             entity.ToTable("UserRole");
 
