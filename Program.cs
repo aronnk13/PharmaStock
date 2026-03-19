@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,13 +17,14 @@ builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
 var app = builder.Build();
 
 // 3. Configure the HTTP request pipeline
-// if (app.Environment.IsDevelopment())
-// {
+if (app.Environment.IsDevelopment())
+{
+
     app.UseSwagger();
     app.UseSwaggerUI();
-// }
+}
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
