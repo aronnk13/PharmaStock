@@ -14,7 +14,6 @@ namespace PharmaStock.Core.Services
         }
         public async Task UpsertUser(UpsertUserDTO upsertUserDTO)
         {
-            if (upsertUserDTO == null) throw new ArgumentNullException(nameof(upsertUserDTO), "Request data cannot be null.");
             User? admin = await _userRepository.GetByIdAsync(upsertUserDTO.AdminId) ?? throw new Exception("Invalid Admin ID. Registration blocked.");
 
             if (upsertUserDTO.IsCreate)

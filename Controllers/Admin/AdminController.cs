@@ -12,9 +12,13 @@ namespace PharmaStock.Controllers.Admin
         {
             _userService = userService;
         }
-        [HttpPost("UserRegistration")]
+        [HttpPost("UpsertUser")]
         public async Task<IActionResult> UpsertUserAsync([FromBody] UpsertUserDTO upsertUserDTO)
         {
+            if (upsertUserDTO == null)
+            {
+                return BadRequest(new { error = "Request data cannot be null." });
+            }
            try
             {
                 await _userService.UpsertUser(upsertUserDTO);
