@@ -1,3 +1,4 @@
+--MODULE 4 Goods Receipt & Put-away
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'GoodsReceiptStatus')
 BEGIN
     CREATE TABLE GoodsReceiptStatus (

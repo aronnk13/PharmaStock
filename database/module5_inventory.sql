@@ -2,10 +2,7 @@
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'InventoryLotStatus')
 BEGIN
-    CREATE TABLE InventoryLotStatus (
-        InventoryLotStatusID INT IDENTITY(1,1) PRIMARY KEY,
-        [Status] VARCHAR(50) NOT NULL
-    );
+    CREATE TABLE InventoryLotStatus (InventoryLotStatusID INT IDENTITY(1,1) PRIMARY KEY, [Status] VARCHAR(50) NOT NULL);
 END
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'InventoryLot')

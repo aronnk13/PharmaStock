@@ -1,27 +1,18 @@
--- MODULE 6: STOCK OPERATIONS & MOVEMENTS 
+--Module 6: Stock Operations & Movements
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'StockTransitionType')
 BEGIN
-    CREATE TABLE StockTransitionType (
-        StockTransitionTypeID INT PRIMARY KEY,
-        TransitionType VARCHAR(50) NOT NULL
-    );
+    CREATE TABLE StockTransitionType (StockTransitionTypeID INT PRIMARY KEY, TransitionType VARCHAR(50) NOT NULL);
 END
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ReplenishmentStatus')
 BEGIN
-    CREATE TABLE ReplenishmentStatus (
-        ReplenishmentStatusID INT IDENTITY(1,1) PRIMARY KEY,
-        [Status] VARCHAR(50) NOT NULL UNIQUE 
-    );
+    CREATE TABLE ReplenishmentStatus (ReplenishmentStatusID INT IDENTITY(1,1) PRIMARY KEY, [Status] VARCHAR(50) NOT NULL UNIQUE);
 END
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'TransferOrderStatus')
 BEGIN
-    CREATE TABLE TransferOrderStatus (
-        TransferOrderStatusID INT IDENTITY(1,1) PRIMARY KEY,
-        [Status] VARCHAR(50) NOT NULL UNIQUE 
-    );
+    CREATE TABLE TransferOrderStatus (TransferOrderStatusID INT IDENTITY(1,1) PRIMARY KEY, [Status] VARCHAR(50) NOT NULL UNIQUE);
 END
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'TransferOrder')
@@ -46,11 +37,16 @@ BEGIN
         ItemID INT NOT NULL,
         InventoryLotID INT NOT NULL,
         Quantity INT NOT NULL,
-        CONSTRAINT CHK_TransferQty CHECK (Quantity >= 0),
-        CONSTRAINT FK_TI_Order FOREIGN KEY (TransferOrderID) REFERENCES TransferOrder(TransferOrderID),
-        CONSTRAINT FK_TI_Item FOREIGN KEY (ItemID) REFERENCES Item(ItemID),
-        CONSTRAINT FK_TI_Lot FOREIGN KEY (InventoryLotID) REFERENCES InventoryLot(InventoryLotID)
+        CONSTRAINT CHK_TItem_Qty CHECK (Quantity >= 0),
+        CONSTRAINT FK_TItem_Order FOREIGN KEY (TransferOrderID) REFERENCES TransferOrder(TransferOrderID),
+        CONSTRAINT FK_TItem_Item FOREIGN KEY (ItemID) REFERENCES Item(ItemID),
+        CONSTRAINT FK_TItem_Lot FOREIGN KEY (InventoryLotID) REFERENCES InventoryLot(InventoryLotID)
     );
+END
+
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'DestinationType')
+BEGIN
+    CREATE TABLE DestinationType (DestinationTypeID INT IDENTITY(1,1) PRIMARY KEY, [Type] VARCHAR(50) NOT NULL);
 END
 
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'DispenseRef')
@@ -81,8 +77,8 @@ BEGIN
         MaxLevel INT NOT NULL,
         ParLevel INT NOT NULL,
         ReviewCycle BIT NOT NULL DEFAULT 1,
-        CONSTRAINT FK_RepRule_Loc FOREIGN KEY (LocationID) REFERENCES [Location](LocationID),
-        CONSTRAINT FK_RepRule_Item FOREIGN KEY (ItemID) REFERENCES Item(ItemID)
+        CONSTRAINT FK_Repl_Loc FOREIGN KEY (LocationID) REFERENCES [Location](LocationID),
+        CONSTRAINT FK_Repl_Item FOREIGN KEY (ItemID) REFERENCES Item(ItemID)
     );
 END
 
@@ -96,10 +92,10 @@ BEGIN
         CreatedDate DATETIME NOT NULL DEFAULT GETDATE(),
         RuleID INT NOT NULL,
         [Status] INT NOT NULL,
-        CONSTRAINT FK_RepReq_Loc FOREIGN KEY (LocationID) REFERENCES [Location](LocationID),
-        CONSTRAINT FK_RepReq_Item FOREIGN KEY (ItemID) REFERENCES Item(ItemID),
-        CONSTRAINT FK_RepReq_Rule FOREIGN KEY (RuleID) REFERENCES ReplenishmentRule(ReplenishmentRuleID),
-        CONSTRAINT FK_RepReq_Status FOREIGN KEY ([Status]) REFERENCES ReplenishmentStatus(ReplenishmentStatusID)
+        CONSTRAINT FK_RReq_Loc FOREIGN KEY (LocationID) REFERENCES [Location](LocationID),
+        CONSTRAINT FK_RReq_Item FOREIGN KEY (ItemID) REFERENCES Item(ItemID),
+        CONSTRAINT FK_RReq_Rule FOREIGN KEY (RuleID) REFERENCES ReplenishmentRule(ReplenishmentRuleID),
+        CONSTRAINT FK_RReq_Status FOREIGN KEY ([Status]) REFERENCES ReplenishmentStatus(ReplenishmentStatusID)
     );
 END
 
@@ -115,7 +111,7 @@ BEGIN
         Quantity INT NOT NULL, 
         StockTransitionTypeDate DATETIME NOT NULL DEFAULT GETDATE(),
         ReferenceID VARCHAR(50), 
-        Notes TEXT,
+        Notes NVARCHAR(MAX),
         PerformedBy INT NOT NULL,
         CONSTRAINT FK_ST_Loc FOREIGN KEY (LocationID) REFERENCES [Location](LocationID),
         CONSTRAINT FK_ST_Bin FOREIGN KEY (BinID) REFERENCES Bin(BinID),
