@@ -21,7 +21,7 @@ namespace PharmaStock.Infrastructure.Services
             var audit = new Audit
             {
                 UserId = userId,
-                Action = action == "CREATE" || action == "UPDATE" || action == "DELETE", 
+                Action = action, 
                 Resource = resource,
                 EventTimestamp = DateTime.UtcNow,
                 Metadata = metadata
