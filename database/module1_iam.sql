@@ -31,7 +31,7 @@ BEGIN
     CREATE TABLE Audit (
         AuditID INT IDENTITY(1,1) PRIMARY KEY,
         UserID INT NOT NULL,
-        Action BIT NOT NULL,
+        Action VARCHAR(100) NOT NULL,
         Resource VARCHAR(100) NOT NULL,
         [Timestamp] DATETIME DEFAULT GETDATE(),
         Metadata NVARCHAR(MAX),
