@@ -24,8 +24,8 @@ namespace PharmaStock.Core.Validators
             RuleFor(x => x.RoleId)
                 .GreaterThan(0).WithMessage("Please select a valid role.");
 
-            RuleFor(x => x.AdminId)
-                .GreaterThan(0).WithMessage("Admin ID must be valid and greater than 0.");
+            RuleFor(x => x.AdminName)
+                .NotNull().WithMessage("Admin ID must be valid and greater than 0.");
         }
     }
 }

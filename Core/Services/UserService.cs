@@ -12,41 +12,72 @@ namespace PharmaStock.Core.Services
         {
             _userRepository = userRepository;
         }
-        public async Task UpsertUser(UpsertUserDTO upsertUserDTO)
+        public async Task<UpsertResponse> UpsertUser(UpsertUserDTO upsertUserDTO)
         {
-            User admin = await _userRepository.GetByIdAsync(upsertUserDTO.AdminId);
-
-            if (upsertUserDTO.IsCreate)
+            try
             {
-                User user = new User
+                if (upsertUserDTO.IsCreate)
                 {
-                    Username = upsertUserDTO.Username,
-                    Email = upsertUserDTO.Email,
-                    Phone = upsertUserDTO.Phone,
-                    RoleId = upsertUserDTO.RoleId,
-                    PasswordHash = "defaultPassword",
-                    CreatedBy = admin.Username,
-                    CreatedOn = DateTime.UtcNow,
-                    UpdatedBy = admin.Username,
-                    UpdatedOn = DateTime.UtcNow,
-                    StatusId = true,
-                };
-                await _userRepository.AddAsync(user);
+                    bool exists = await _userRepository.IsUserExistAsync(
+                   upsertUserDTO.Username,
+                   upsertUserDTO.Email,
+                   upsertUserDTO.Phone,
+                   upsertUserDTO.IsCreate ? null : upsertUserDTO.UserId
+               );
+
+                    if (exists)
+                    {
+                        return new UpsertResponse
+                        {
+                            IsSuccess = false,
+                            Message = "A user with this Username, Email, or Phone already exists."
+                        };
+                    }
+                    User user = new User
+                    {
+                        Username = upsertUserDTO.Username,
+                        Email = upsertUserDTO.Email,
+                        Phone = upsertUserDTO.Phone,
+                        RoleId = upsertUserDTO.RoleId,
+                        PasswordHash = "defaultPassword",
+                        CreatedBy = upsertUserDTO.AdminName,
+                        CreatedOn = DateTime.UtcNow,
+                        UpdatedBy = upsertUserDTO.AdminName,
+                        UpdatedOn = DateTime.UtcNow,
+                        StatusId = true,
+                    };
+                    await _userRepository.AddAsync(user);
+
+                    return new UpsertResponse { IsSuccess = true, Message = $"User '{upsertUserDTO.Username}' registered successfully." };
+                }
+                else
+                {
+                    User? existingUser = await _userRepository.GetByIdAsync(upsertUserDTO.UserId);
+                    if (existingUser == null)
+                    {
+                        return new UpsertResponse { IsSuccess = false, Message = $"User with ID {upsertUserDTO.UserId} not found!" };
+                    }
+
+                    existingUser.Username = upsertUserDTO.Username;
+                    existingUser.Email = upsertUserDTO.Email;
+                    existingUser.Phone = upsertUserDTO.Phone;
+                    existingUser.RoleId = upsertUserDTO.RoleId;
+
+                    existingUser.UpdatedBy = upsertUserDTO.AdminName;
+                    existingUser.UpdatedOn = DateTime.UtcNow;
+
+                    _userRepository.Update(existingUser);
+
+                    return new UpsertResponse { IsSuccess = true, Message = $"User '{upsertUserDTO.Username}' updated successfully." };
+                }
             }
-            else
+            catch (Exception ex)
             {
-                User? existingUser = await _userRepository.GetByIdAsync(upsertUserDTO.UserId);
-                if (existingUser == null) throw new Exception($"User with ID {upsertUserDTO.UserId} not found!");
-
-                existingUser.Username = upsertUserDTO.Username;
-                existingUser.Email = upsertUserDTO.Email;
-                existingUser.Phone = upsertUserDTO.Phone;
-                existingUser.RoleId = upsertUserDTO.RoleId;
-
-                existingUser.UpdatedBy = admin.Username;
-                existingUser.UpdatedOn = DateTime.UtcNow;
-
-                _userRepository.Update(existingUser);
+                return new UpsertResponse
+                {
+                    IsSuccess = false,
+                    Message = $"An unexpected error occurred: {ex.Message}"
+                };
             }
         }
     }

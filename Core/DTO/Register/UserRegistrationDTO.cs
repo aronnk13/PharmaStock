@@ -34,7 +34,7 @@ namespace PharmaStock.Core.DTO.Register
         /// <summary>
         /// The ID of the admin performing this action.
         /// </summary>
-        public int AdminId { get; set; }
+        public string AdminName { get; set; }
 
         /// <summary>
         /// Flag indicating whether this is a new user creation (true) or an update (false).

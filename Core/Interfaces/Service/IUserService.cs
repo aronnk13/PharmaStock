@@ -4,6 +4,7 @@ namespace PharmaStock.Core.Interfaces.Service
 {
     public interface IUserService
     {
-        public Task UpsertUser(UpsertUserDTO upsertUserDTO);
+        public Task<UpsertResponse> UpsertUser(UpsertUserDTO upsertUserDTO);
+
     }
 }
