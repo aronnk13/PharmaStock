@@ -21,8 +21,7 @@ namespace PharmaStock.Core.Services
                     bool exists = await _userRepository.IsUserExistAsync(
                    upsertUserDTO.Username,
                    upsertUserDTO.Email,
-                   upsertUserDTO.Phone,
-                   upsertUserDTO.IsCreate ? null : upsertUserDTO.UserId
+                   upsertUserDTO.Phone
                );
 
                     if (exists)

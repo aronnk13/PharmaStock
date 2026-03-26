@@ -4,18 +4,17 @@ using PharmaStock.Models;
 
 namespace PharmaStock.Infrastructure.Repositories
 {
-    public class UserRepository(PharmaStockContext context) : GenericRepository<User>(context), IUserRepository
+    public class UserRepository : GenericRepository<User>, IUserRepository
     {
-        public async Task<bool> IsUserExistAsync(string username, string email, string phone, int? excludeUserId = null)
+         private readonly PharmaStockContext _pharmaStockContext;
+       public UserRepository(PharmaStockContext pharmaStockContext) 
+            : base(pharmaStockContext)
         {
-            var query = context.Set<User>().AsQueryable();
-
-            // If we are updating, ignore the user we are currently modifying
-            if (excludeUserId.HasValue)
-            {
-                query = query.Where(u => u.UserId != excludeUserId.Value);
-            }
-
+            _pharmaStockContext = pharmaStockContext;
+        }
+        public async Task<bool> IsUserExistAsync(string username, string email, string phone)
+        {
+            var query = _pharmaStockContext.Set<User>().AsQueryable();
             // Check if any remaining user has this exact username, email, or phone
             return await query.AnyAsync(u => 
                 u.Username == username || 
