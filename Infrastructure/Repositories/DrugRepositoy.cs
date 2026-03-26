@@ -12,13 +12,10 @@ namespace PharmaStock.Infrastructure.Repositories
     public class DrugRepositoy : IDrugRepository
     {
         private readonly PharmaStockContext _context;
-
         public DrugRepositoy(PharmaStockContext context)
         {
             _context = context;
         }
-
-
         public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
         {
             try
@@ -34,7 +31,7 @@ namespace PharmaStock.Infrastructure.Repositories
                         Message = "Drug not found."
                     };
                 }
-                
+
                 // 2. Change status
                 drug.Status = false;
                 _context.Drugs.Update(drug);
@@ -65,8 +62,6 @@ namespace PharmaStock.Infrastructure.Repositories
                     Message = $"An error occurred: {ex.Message}"
                 };
             }
-
-
         }
     }
 }

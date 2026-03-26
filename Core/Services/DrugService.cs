@@ -11,7 +11,6 @@ namespace PharmaStock.Core.Services
 {
     public class DrugService : IDrugService
     {
-
         private readonly IDrugRepository _drugRepository;
 
         public DrugService(IDrugRepository drugRepository)
@@ -20,9 +19,7 @@ namespace PharmaStock.Core.Services
         }
         public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
         {
-
             return await _drugRepository.DeleteDrug(DrugId);
-
         }
     }
 }

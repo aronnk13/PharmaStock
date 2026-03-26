@@ -20,6 +20,8 @@ namespace PharmaStock.Controllers.Drug
 
         [HttpDelete]
         [Route("DeleteDrug/{DrugId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteDrug([FromRoute] int DrugId)
         {
             var response = await _drugService.DeleteDrug(DrugId);
@@ -27,8 +29,7 @@ namespace PharmaStock.Controllers.Drug
             {
                 return Ok(new { message = response.Message });  // NoContent() => 204 delete success
             }
-
-
+            
             return BadRequest(new { message = response.Message });
         }
     }

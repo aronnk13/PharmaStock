@@ -8,6 +8,6 @@ namespace PharmaStock.Core.Interfaces.Repository
 {
     public interface IDrugRepository
     {
-        Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId);    
+                Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId);    
     }
 }
