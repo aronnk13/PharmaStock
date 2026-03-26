@@ -8,7 +8,7 @@ namespace PharmaStock.Core.Interfaces
     public interface IGenericRepository<T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
-        Task<T> GetByIdAsync(string id);
+        Task<T?> GetByIdAsync(string id);
         Task AddAsync(T obj);   
         void Update(T obj);
         Task DeleteAsync(string id);
