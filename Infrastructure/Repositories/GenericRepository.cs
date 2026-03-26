@@ -13,14 +13,14 @@ namespace PharmaStock.Infrastructure.Repositories
             this._context = context;
             this._dbset = _context.Set<T>();
         }
-
-        public async Task AddAsync(T obj)
+ 
+        public async System.Threading.Tasks.Task AddAsync(T obj)
         {
             await _dbset.AddAsync(obj);
             await _context.SaveChangesAsync();
         }
-
-        public async Task DeleteAsync(string id)
+ 
+        public async System.Threading.Tasks.Task DeleteAsync(int id)
         {
             var entity = await _dbset.FindAsync(id);
             if(entity != null)
@@ -29,22 +29,22 @@ namespace PharmaStock.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-
+ 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbset.ToListAsync();
         }
-
-        public async Task<T> GetByIdAsync(string id)
+ 
+        public async Task<T> GetByIdAsync(int id)
         {
-            var entity =  await _dbset.FindAsync(id);
+            T entity = await _dbset.FindAsync(id);
             if(entity != null)
             {
                 return entity;
             }
             return null;
         }
-
+ 
         public void Update(T obj)
         {
             _dbset.Update(obj);
