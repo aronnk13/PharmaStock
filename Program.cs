@@ -2,6 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
+using PharmaStock.Core.Interfaces;
+using PharmaStock.Infrastructure.Services;
+using PharmaStock.Infrastructure.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -56,6 +59,8 @@ builder.Services.AddScoped<IDrugRepository, DrugRepositoy>();
 builder.Services.AddScoped<IDrugService, DrugService>();
 
 
+builder.Services.AddTransient<IAuditLogService, AuditLogService>();
+builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
 );
