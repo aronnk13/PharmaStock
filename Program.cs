@@ -9,6 +9,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using FluentValidation;
 using PharmaStock.Core.Validators.Auth;
 using FluentValidation.AspNetCore;
+using PharmaStock.Core.Interfaces;
+using PharmaStock.Core.Services;
+using PharmaStock.Infrastructure.Repositories;
+using PharmaStock.Core.Interfaces.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +50,11 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped(typeof(PharmaStock.Core.Interfaces.IGenericRepository<>), typeof(PharmaStock.Infrastructure.Repositories.GenericRepository<>)); 
 //if not typeof, you would have to specify the type of repository you want to use, but with typeof, you can use any repository you want by just passing the type of it as T.
+
+builder.Services.AddScoped<IDrugRepository, DrugRepositoy>();
+
+builder.Services.AddScoped<IDrugService, DrugService>();
+
 
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
