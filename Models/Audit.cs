@@ -9,7 +9,7 @@ public partial class Audit
 
     public int UserId { get; set; }
 
-    public string Action { get; set; }
+    public string? Action { get; set; } = null;
 
     public string Resource { get; set; } = null!;
 
