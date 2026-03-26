@@ -1043,7 +1043,7 @@ public partial class PharmaStockContext : DbContext
         {
             entity.HasKey(e => e.TaskId).HasName("PK__Task__7C6949D1679ED75A");
 
-            entity.ToTable("Tasks");
+            entity.ToTable("Task");
 
             entity.Property(e => e.TaskId).HasColumnName("TaskID");
             entity.Property(e => e.GoodsReceiptItemId).HasColumnName("GoodsReceiptItemID");
