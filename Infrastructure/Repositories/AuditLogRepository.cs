@@ -2,24 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using PharmaStock.Core.Interfaces;
 using PharmaStock.Models;
 
 namespace PharmaStock.Infrastructure.Repositories
 {
-    public class AuditLogRepository : IAuditLogRepository
+    public class AuditLogRepository(PharmaStockContext pharmaStockContext) : IAuditLogRepository
     {
-        private static readonly List<Audit> _logs = new();
-
-        public async Task AddAsync(Audit log)
+        public async Task<bool> AddAsync(Audit log)
         {
-            _logs.Add(log);
-            await Task.CompletedTask;
-        }
-
-        public async Task<IEnumerable<Audit>> GetAllAsync()
-        {
-            return await Task.FromResult(_logs);
+            try
+            {
+                pharmaStockContext.Audits.Add(log);
+                await pharmaStockContext.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                throw new Exception($"Database update failed: {dbEx.InnerException?.Message ?? dbEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Unexpected error: {ex.Message}");
+            }
         }
     }
 }

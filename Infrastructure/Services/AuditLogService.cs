@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.Interfaces;
 using PharmaStock.Models;
 
@@ -16,24 +17,17 @@ namespace PharmaStock.Infrastructure.Services
             _repository = repository;
         }
 
-        public async Task CreateLogAsync(int userId, string action, string resource, string metadata)
+        public async Task<bool> CreateLogAsync(AuditDto dto)
         {
             var audit = new Audit
             {
-                UserId = userId,
-                Action = action, 
-                Resource = resource,
+                UserId = dto.UserId,
+                Action = dto.Action, 
+                Resource = dto.Resource,
                 EventTimestamp = DateTime.UtcNow,
-                Metadata = metadata
+                Metadata = dto.Metadata
             };
-
-            await _repository.AddAsync(audit);
+            return await _repository.AddAsync(audit);
         }
-
-        public async Task<IEnumerable<Audit>> GetAuditsAsync()
-        {
-            return await _repository.GetAllAsync();
-        }
-
     }
 }

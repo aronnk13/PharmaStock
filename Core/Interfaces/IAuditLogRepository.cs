@@ -8,7 +8,6 @@ namespace PharmaStock.Core.Interfaces
 {
     public interface IAuditLogRepository
     {
-        Task AddAsync(Audit log);
-        Task<IEnumerable<Audit>> GetAllAsync();
+        Task<bool> AddAsync(Audit log);
     }
 }
