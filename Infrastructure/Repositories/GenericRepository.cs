@@ -20,7 +20,7 @@ namespace PharmaStock.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(int id)
         {
             var entity = await _dbset.FindAsync(id);
             if(entity != null)
@@ -35,9 +35,9 @@ namespace PharmaStock.Infrastructure.Repositories
             return await _dbset.ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(string id)
+        public async Task<T> GetByIdAsync(int id)
         {
-            var entity =  await _dbset.FindAsync(id);
+            T entity = await _dbset.FindAsync(id);
             if(entity != null)
             {
                 return entity;
