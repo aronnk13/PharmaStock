@@ -35,7 +35,7 @@ namespace PharmaStock.Infrastructure.Repositories
             return await _dbset.ToListAsync();
         }
 
-        public async Task<T> GetByIdAsync(string id)
+        public async Task<T?> GetByIdAsync(string id)
         {
             var entity =  await _dbset.FindAsync(id);
             if(entity != null)

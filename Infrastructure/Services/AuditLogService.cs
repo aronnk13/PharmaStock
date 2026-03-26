@@ -25,7 +25,7 @@ namespace PharmaStock.Infrastructure.Services
                 UserId = dto.UserId,
                 Action = dto.Action, 
                 Resource = dto.Resource,
-                EventTimestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow,
                 Metadata = dto.Metadata
             };
             return await _repository.AddAsync(audit);
