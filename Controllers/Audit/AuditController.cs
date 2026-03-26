@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO;
+using PharmaStock.Core.DTO.Audit;
 using PharmaStock.Core.Interfaces;
 
 namespace PharmaStock.Controllers
@@ -14,10 +15,14 @@ namespace PharmaStock.Controllers
     {
         [HttpPost]
         [Route("CreateAudit")]
-        public async Task<IActionResult> CreateAudit(AuditDto dto)
+        public async Task<ActionResult<AuditLog>> CreateAudit(AuditDto dto)
         {
-            await auditLogService.CreateLogAsync(dto);
-            return Ok("Success");
+            var res=await auditLogService.CreateLogAsync(dto);
+            if (!res.Result)
+            {
+                return StatusCode(500,res);
+            }
+            return Ok(res);
         }
     }
 }

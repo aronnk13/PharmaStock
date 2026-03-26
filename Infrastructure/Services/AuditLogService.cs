@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using PharmaStock.Core.DTO;
+using PharmaStock.Core.DTO.Audit;
 using PharmaStock.Core.Interfaces;
 using PharmaStock.Models;
 
@@ -17,7 +18,7 @@ namespace PharmaStock.Infrastructure.Services
             _repository = repository;
         }
 
-        public async Task<bool> CreateLogAsync(AuditDto dto)
+        public async Task<AuditLog> CreateLogAsync(AuditDto dto)
         {
             var audit = new Audit
             {
