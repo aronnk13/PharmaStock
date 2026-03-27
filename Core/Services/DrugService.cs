@@ -1,10 +1,13 @@
 using System;
 using System.Runtime.CompilerServices;
+using Microsoft.IdentityModel.Tokens;
+using PharmaStock.Core.DTO.Auth;
 using PharmaStock.Core.DTO.Common;
 using PharmaStock.Core.DTO.Drug;
 using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Infrastructure.Repositories;
+using PharmaStock.Core.Interfaces.Repository;
 
 
 namespace PharmaStock.Core.Services
@@ -53,6 +56,11 @@ namespace PharmaStock.Core.Services
                 Page = filter.Page,
                 PageSize = filter.PageSize
             };
+        }
+        
+        public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
+        {
+            return await _drugRepository.DeleteDrug(DrugId);
         }
     }
 }

@@ -18,8 +18,8 @@ namespace PharmaStock.Infrastructure.Repositories
         {
             await _dbset.AddAsync(obj);
             await _context.SaveChangesAsync();
-        }
- 
+        } 
+
         public async System.Threading.Tasks.Task DeleteAsync(int id)
         {
             var entity = await _dbset.FindAsync(id);
