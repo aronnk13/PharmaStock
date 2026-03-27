@@ -13,7 +13,11 @@ namespace PharmaStock.Infrastructure.Repositories
             this._context = context;
             this._dbset = _context.Set<T>();
         }
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 1689b0db35e76f7f041b943b6e6830cc57df8c3f
         public async System.Threading.Tasks.Task AddAsync(T obj)
         {
             await _dbset.AddAsync(obj);
@@ -34,10 +38,11 @@ namespace PharmaStock.Infrastructure.Repositories
         {
             return await _dbset.ToListAsync();
         }
+ 
 
         public async Task<T?> GetByIdAsync(string id)
         {
-            var entity =  await _dbset.FindAsync(id);
+            T entity = await _dbset.FindAsync(id);
             if(entity != null)
             {
                 return entity;
