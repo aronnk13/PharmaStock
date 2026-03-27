@@ -53,7 +53,6 @@ namespace PharmaStock.Controllers
                 role = user.Role.RoleType
             });
         }
-
             private string GenerateJwtToken(User user)
         {
             var claims = new[]

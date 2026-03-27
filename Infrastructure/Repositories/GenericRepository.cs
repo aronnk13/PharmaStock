@@ -14,13 +14,13 @@ namespace PharmaStock.Infrastructure.Repositories
             this._dbset = _context.Set<T>();
         }
 
-        public async Task AddAsync(T obj)
+        public async System.Threading.Tasks.Task AddAsync(T obj)
         {
             await _dbset.AddAsync(obj);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(string id)
+        public async System.Threading.Tasks.Task DeleteAsync(string id)
         {
             var entity = await _dbset.FindAsync(id);
             if(entity != null)
