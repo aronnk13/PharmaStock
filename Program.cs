@@ -10,14 +10,7 @@ using PharmaStock.Infrastructure.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using FluentValidation;
 using PharmaStock.Core.Validators.Auth;
-using FluentValidation.AspNetCore;
-using PharmaStock.Core.Interfaces;
-using PharmaStock.Core.Services;
-using PharmaStock.Infrastructure.Repositories;
-using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
