@@ -52,10 +52,11 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); 
 //if not typeof, you would have to specify the type of repository you want to use, but with typeof, you can use any repository you want by just passing the type of it as T.
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-builder.Services.AddScoped<IDrugRepository, DrugRepositoy>();
+builder.Services.AddScoped<IDrugRepository, DrugRepository>();
 
 builder.Services.AddScoped<IDrugService, DrugService>();
 
