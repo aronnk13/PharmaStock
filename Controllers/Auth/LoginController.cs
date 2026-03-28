@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PharmaStock.Models;
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using PharmaStock.Core.DTO.Auth;
@@ -7,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using PharmaStock.Models;
 
 namespace PharmaStock.Controllers
 {

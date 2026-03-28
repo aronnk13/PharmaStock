@@ -10,10 +10,8 @@ using PharmaStock.Infrastructure.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using FluentValidation;
 using PharmaStock.Core.Validators.Auth;
-using FluentValidation.AspNetCore;
+using PharmaStock.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,9 +52,17 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); 
 //if not typeof, you would have to specify the type of repository you want to use, but with typeof, you can use any repository you want by just passing the type of it as T.
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+builder.Services.AddScoped<IDrugRepository, DrugRepository>();
+
+builder.Services.AddScoped<IDrugService, DrugService>();
+
+
+builder.Services.AddTransient<IAuditLogService, AuditLogService>();
+builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
 );
