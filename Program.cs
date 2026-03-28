@@ -59,6 +59,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IDrugRepository, DrugRepository>();
 
 builder.Services.AddScoped<IDrugService, DrugService>();
+builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
 
 
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
