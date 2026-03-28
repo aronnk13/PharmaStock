@@ -13,8 +13,8 @@ namespace PharmaStock.Infrastructure.Repositories
 {
     public class DrugRepository(PharmaStockContext context) : GenericRepository<Drug>(context), IDrugRepository
     {
-        
-        public async Task<(List<Drug>,int)> GetDrugsByFilterAsync(DrugFilterDTO filter)
+
+        public async Task<(List<Drug>, int)> GetDrugsByFilterAsync(DrugFilterDTO filter)
         {
             var result = context.Drugs.AsQueryable();
             if (filter.GenericName != null)
@@ -36,13 +36,22 @@ namespace PharmaStock.Infrastructure.Repositories
 
             var totalCount = await result.CountAsync();
 
-            var drugs = await result.Skip((filter.Page-1)*filter.PageSize)
+            var drugs = await result.Skip((filter.Page - 1) * filter.PageSize)
                                     .Take(filter.PageSize)
                                     .ToListAsync();
-            
+
             return (drugs, totalCount);
         }
-         public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
+
+        public async Task<bool> Exists(string name, string strength, int formId)
+        {
+
+            return await _context.Drugs.AnyAsync(d =>
+                d.GenericName == name &&
+                d.Strength == strength &&
+                d.Form == formId);
+        }
+        public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
         {
             try
             {

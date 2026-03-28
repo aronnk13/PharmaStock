@@ -18,15 +18,15 @@ namespace PharmaStock.Controllers.Drug
         {
             _drugService = drugService;
         }
-        
+
         [HttpGet]
-       //    [Route("")]
+        //    [Route("")]
         public async Task<IActionResult> GetAllDrugs([FromQuery] DrugFilterDTO filter)
         {
             var drugs = await _drugService.GetPaginatedResult(filter);
             return Ok(drugs);
         }
-        
+
         [HttpGet]
         [Route("{id}")]
         public async Task<IActionResult> GetDrugById(int id)
@@ -37,6 +37,44 @@ namespace PharmaStock.Controllers.Drug
                 return NotFound(new { errorCode = "DRUG_NOT_FOUND", message = "Drug not found" });
             }
             return Ok(drug);
+        }
+
+        [HttpPost("CreateDrug")]
+        public async Task<IActionResult> CreateDrug([FromBody] CreateDrugDTO request)
+        {
+            try
+            {
+                var result = await _drugService.CreateDrug(request);
+                // Returns 201 Created with the location of the new resource
+                return CreatedAtAction(nameof(GetDrugById), new { id = result.DrugId }, result);
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "DRUG_DUPLICATE")
+            {
+                return Conflict(new { errorCode = "DRUG_DUPLICATE", message = "This drug already exists." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("UpdateDrug/{DrugId}")]
+        public async Task<IActionResult> UpdateDrug([FromRoute] int DrugId, [FromBody] UpdateDrugDTO request)
+        {
+            if (DrugId != request.DrugId)
+                return BadRequest(new { message = "ID Mismatch" });
+
+            try
+            {
+                var success = await _drugService.UpdateDrug(request);
+                if (!success) return NotFound();
+
+                return Ok(new { message = "Drug updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete]
@@ -50,7 +88,7 @@ namespace PharmaStock.Controllers.Drug
             {
                 return Ok(new { message = response.Message });  // NoContent() => 204 delete success
             }
-            
+
             return BadRequest(new { message = response.Message });
         }
     }
