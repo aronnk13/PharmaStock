@@ -20,7 +20,6 @@ namespace PharmaStock.Controllers.Drug
         }
 
         [HttpGet]
-        //    [Route("")]
         public async Task<IActionResult> GetAllDrugs([FromQuery] DrugFilterDTO filter)
         {
             var drugs = await _drugService.GetPaginatedResult(filter);
@@ -42,10 +41,13 @@ namespace PharmaStock.Controllers.Drug
         [HttpPost("CreateDrug")]
         public async Task<IActionResult> CreateDrug([FromBody] CreateDrugDTO request)
         {
+            if (request == null)
+            {
+                return BadRequest("Drug data is required.");
+            }
             try
             {
                 var result = await _drugService.CreateDrug(request);
-                // Returns 201 Created with the location of the new resource
                 return CreatedAtAction(nameof(GetDrugById), new { id = result.DrugId }, result);
             }
             catch (InvalidOperationException ex) when (ex.Message == "DRUG_DUPLICATE")
@@ -58,9 +60,17 @@ namespace PharmaStock.Controllers.Drug
             }
         }
 
-        [HttpPut("UpdateDrug/{DrugId}")]
+        [HttpPut("{drugId}")]
         public async Task<IActionResult> UpdateDrug([FromRoute] int DrugId, [FromBody] UpdateDrugDTO request)
         {
+            if (request == null)
+    {
+        return BadRequest(new { message = "Request body is required." });
+    }
+    if (DrugId <= 0 || request.DrugId <= 0)
+    {
+        return BadRequest(new { message = "DrugId must be greater than 0." });
+    }
             if (DrugId != request.DrugId)
                 return BadRequest(new { message = "ID Mismatch" });
 

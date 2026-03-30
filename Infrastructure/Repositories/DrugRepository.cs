@@ -43,14 +43,15 @@ namespace PharmaStock.Infrastructure.Repositories
             return (drugs, totalCount);
         }
 
-        public async Task<bool> Exists(string name, string strength, int formId)
-        {
-
-            return await _context.Drugs.AnyAsync(d =>
-                d.GenericName == name &&
-                d.Strength == strength &&
-                d.Form == formId);
-        }
+        public async Task<bool> IsDrugExists(string name, string strength, int form, int? excludeId = null)
+{
+    return await _context.Drugs.AnyAsync(d => 
+        d.GenericName == name && 
+        d.Strength == strength && 
+        d.Form == form && 
+        // If excludeId has a value, skip that record (essential for Updates)
+        (!excludeId.HasValue || d.DrugId != excludeId.Value));
+}
         public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
         {
             try

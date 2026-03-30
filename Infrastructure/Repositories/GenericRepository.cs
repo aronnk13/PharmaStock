@@ -49,7 +49,7 @@ namespace PharmaStock.Infrastructure.Repositories
             _dbset.Update(obj);
             _context.SaveChanges();
         }
-        public async Task<bool> UpdateAsync(T obj)
+        public async System.Threading.Tasks.Task<bool> UpdateAsync(T obj)
         {
             _context.Set<T>().Update(obj);
             return await _context.SaveChangesAsync() > 0;
