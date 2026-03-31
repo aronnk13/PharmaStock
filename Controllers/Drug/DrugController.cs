@@ -38,7 +38,8 @@ namespace PharmaStock.Controllers.Drug
             return Ok(drug);
         }
 
-        [HttpPost("CreateDrug")]
+        [HttpPost]
+        [Route("CreateDrug")]
         public async Task<IActionResult> CreateDrug([FromBody] CreateDrugDTO request)
         {
             if (request == null)
@@ -60,17 +61,18 @@ namespace PharmaStock.Controllers.Drug
             }
         }
 
-        [HttpPut("{drugId}")]
+        [HttpPut]
+        [Route("UpdateDrug/{DrugId}")]
         public async Task<IActionResult> UpdateDrug([FromRoute] int DrugId, [FromBody] UpdateDrugDTO request)
         {
             if (request == null)
-    {
-        return BadRequest(new { message = "Request body is required." });
-    }
-    if (DrugId <= 0 || request.DrugId <= 0)
-    {
-        return BadRequest(new { message = "DrugId must be greater than 0." });
-    }
+            {
+                return BadRequest(new { message = "Request body is required." });
+            }
+            if (DrugId <= 0 || request.DrugId <= 0)
+            {
+                return BadRequest(new { message = "DrugId must be greater than 0." });
+            }
             if (DrugId != request.DrugId)
                 return BadRequest(new { message = "ID Mismatch" });
 

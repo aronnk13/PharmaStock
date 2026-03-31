@@ -6,18 +6,18 @@ namespace PharmaStock.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-       protected readonly PharmaStockContext _context; //represents the whole db.
-       private readonly DbSet<T> _dbset; //represents a table, whichever we're passing as T.
-        public GenericRepository(PharmaStockContext context)
+       protected readonly PharmaStockContext _pharmaStockContext; 
+       private readonly DbSet<T> _dbset;
+        public GenericRepository(PharmaStockContext _pharmaStockContext)
         {
-            this._context = context;
-            this._dbset = _context.Set<T>();
+            this._pharmaStockContext = _pharmaStockContext;
+            this._dbset = _pharmaStockContext.Set<T>();
         }
 
         public async System.Threading.Tasks.Task AddAsync(T obj)
         {
             await _dbset.AddAsync(obj);
-            await _context.SaveChangesAsync();
+            await _pharmaStockContext.SaveChangesAsync();
         }
         public async System.Threading.Tasks.Task DeleteAsync(int id)
         {
@@ -25,7 +25,7 @@ namespace PharmaStock.Infrastructure.Repositories
             if (entity != null)
             {
                 _dbset.Remove(entity);
-                await _context.SaveChangesAsync();
+                await _pharmaStockContext.SaveChangesAsync();
             }
         }
 
@@ -47,17 +47,17 @@ namespace PharmaStock.Infrastructure.Repositories
         public void Update(T obj)
         {
             _dbset.Update(obj);
-            _context.SaveChanges();
+            _pharmaStockContext.SaveChanges();
         }
         public async System.Threading.Tasks.Task<bool> UpdateAsync(T obj)
         {
-            _context.Set<T>().Update(obj);
-            return await _context.SaveChangesAsync() > 0;
+            _pharmaStockContext.Set<T>().Update(obj);
+            return await _pharmaStockContext.SaveChangesAsync() > 0;
         }
         public async System.Threading.Tasks.Task Add(T obj)
         {
-            await _context.Set<T>().AddAsync(obj);
-            await _context.SaveChangesAsync();
+            await _pharmaStockContext.Set<T>().AddAsync(obj);
+            await _pharmaStockContext.SaveChangesAsync();
         }
 
     }
