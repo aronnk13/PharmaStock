@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.Interfaces;
 
@@ -9,6 +10,7 @@ namespace PharmaStock.Controllers.Drug
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class DrugController : ControllerBase
     {
         private readonly IDrugService _drugService;
@@ -22,6 +24,8 @@ namespace PharmaStock.Controllers.Drug
         [Route("DeleteDrug/{DrugId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> DeleteDrug([FromRoute] int DrugId)
         {
             var response = await _drugService.DeleteDrug(DrugId);
