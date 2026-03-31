@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaStock.Core.Interfaces;
+using PharmaStock.Core.DTO.Drug;
+using PharmaStock.Core.Interfaces.Service;
+using PharmaStock.Core.Services;
 
 namespace PharmaStock.Controllers.Drug
 {
@@ -14,10 +16,29 @@ namespace PharmaStock.Controllers.Drug
     public class DrugController : ControllerBase
     {
         private readonly IDrugService _drugService;
-
         public DrugController(IDrugService drugService)
         {
             _drugService = drugService;
+        }
+        
+        [HttpGet]
+       //    [Route("")]
+        public async Task<IActionResult> GetAllDrugs([FromQuery] DrugFilterDTO filter)
+        {
+            var drugs = await _drugService.GetPaginatedResult(filter);
+            return Ok(drugs);
+        }
+        
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IActionResult> GetDrugById(int id)
+        {
+            var drug = await _drugService.GetDrugbyid(id);
+            if (drug == null)
+            {
+                return NotFound(new { errorCode = "DRUG_NOT_FOUND", message = "Drug not found" });
+            }
+            return Ok(drug);
         }
 
         [HttpDelete]
