@@ -10,8 +10,7 @@ public partial class PharmaStockContext : DbContext
     {
     }
 
-    public PharmaStockContext(DbContextOptions<PharmaStockContext> options)
-        : base(options)
+    public PharmaStockContext(DbContextOptions<PharmaStockContext> options): base(options)
     {
     }
 

@@ -31,13 +31,25 @@ namespace PharmaStock.Controllers.Item
         [HttpPut("update")]
         public async Task<IActionResult> UpdateItem([FromBody] UpdateItemDTO dto)
         {
-            await _itemService.UpdateItemAsync(dto);
-
-            return Ok(new
+            try
             {
-                success = true,
-                message = "Item updated successfully"
-            });
+                await _itemService.UpdateItemAsync(dto);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Item updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
+
     }
 }

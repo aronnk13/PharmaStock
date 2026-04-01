@@ -14,6 +14,7 @@ namespace PharmaStock.Core.DTO.Item
         public decimal ConversionToEach { get; set; }
         public string Barcode { get; set; } = null!;
         public bool Status { get; set; }
+        
     }
 
 }

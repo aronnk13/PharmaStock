@@ -16,6 +16,7 @@ namespace PharmaStock.Core.DTO.Item
         public string Barcode { get; set; } = null!;
         public bool Status { get; set; }
         
+        
     }
 
 }
