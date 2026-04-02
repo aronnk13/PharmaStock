@@ -15,6 +15,7 @@ namespace PharmaStock.Controllers.Item
             _itemService = itemService;
         }
 
+        // ✅ CREATE
         [HttpPost("create")]
         public async Task<IActionResult> CreateItem([FromBody] CreateItemDTO dto)
         {
@@ -28,9 +29,32 @@ namespace PharmaStock.Controllers.Item
             });
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateItem([FromBody] UpdateItemDTO dto)
+        // ✅ GET BY ID (THIS ENABLES EDIT FLOW)
+        [HttpGet("{itemId}")]
+        public async Task<IActionResult> GetItemById(int itemId)
         {
+            var item = await _itemService.GetItemByIdAsync(itemId);
+
+            if (item == null)
+                return NotFound(new { success = false, message = "Item not found" });
+
+            return Ok(item);
+        }
+
+
+        // ✅ UPDATE
+        [HttpPut("update/{itemId}")]
+        public async Task<IActionResult> UpdateItem(
+            int itemId,
+            [FromBody] UpdateItemDTO dto)
+        {
+            if (itemId != dto.ItemId)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "ItemId mismatch"
+                });
+
             try
             {
                 await _itemService.UpdateItemAsync(dto);
@@ -41,7 +65,7 @@ namespace PharmaStock.Controllers.Item
                     message = "Item updated successfully"
                 });
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException ex)
             {
                 return NotFound(new
                 {
@@ -50,6 +74,5 @@ namespace PharmaStock.Controllers.Item
                 });
             }
         }
-
     }
 }

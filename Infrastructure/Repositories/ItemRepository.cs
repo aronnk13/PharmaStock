@@ -16,9 +16,8 @@ namespace PharmaStock.Infrastructure.Repositories
         public async Task<Item?> GetByIdAsync(int itemId)
         {
             return await _context.Items
-                .FirstOrDefaultAsync(x => x.ItemId == itemId);
+                .FirstOrDefaultAsync(i => i.ItemId == itemId);
         }
-
 
         public async System.Threading.Tasks.Task AddAsync(Item item)
         {

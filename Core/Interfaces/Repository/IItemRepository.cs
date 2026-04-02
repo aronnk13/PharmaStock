@@ -7,6 +7,7 @@ using PharmaStock.Models;
 namespace PharmaStock.Core.Interfaces.Repository
 {
 
+
     public interface IItemRepository
     {
         Task<Item?> GetByIdAsync(int itemId);

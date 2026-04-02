@@ -14,6 +14,7 @@ namespace PharmaStock.Core.Services
             _itemRepository = itemRepository;
         }
 
+        // ✅ CREATE
         public async Task<int> CreateItemAsync(CreateItemDTO dto)
         {
             var item = new Item
@@ -30,12 +31,13 @@ namespace PharmaStock.Core.Services
             return item.ItemId;
         }
 
+        // ✅ UPDATE
         public async System.Threading.Tasks.Task UpdateItemAsync(UpdateItemDTO dto)
         {
             var item = await _itemRepository.GetByIdAsync(dto.ItemId);
 
             if (item == null)
-                throw new Exception("Item not found");
+                throw new KeyNotFoundException("Item not found");
 
             item.DrugId = dto.DrugId;
             item.PackSize = dto.PackSize;
@@ -46,6 +48,25 @@ namespace PharmaStock.Core.Services
 
             await _itemRepository.UpdateAsync(item);
         }
-        
+
+        // ✅ GET BY ID (FOR EDIT FLOW)
+        public async Task<ItemResponseDTO?> GetItemByIdAsync(int itemId)
+        {
+            var item = await _itemRepository.GetByIdAsync(itemId);
+
+            if (item == null)
+                return null;
+
+            return new ItemResponseDTO
+            {
+                ItemId = item.ItemId,
+                DrugId = item.DrugId,
+                PackSize = item.PackSize,
+                UoM = item.UoM,
+                ConversionToEach = item.ConversionToEach,
+                Barcode = item.Barcode!,
+                Status = item.Status
+            };
+        }
     }
 }

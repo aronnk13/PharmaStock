@@ -6,5 +6,8 @@ namespace PharmaStock.Core.Interfaces.Service
     {
         Task<int> CreateItemAsync(CreateItemDTO dto);
         Task UpdateItemAsync(UpdateItemDTO dto);
+
+       
+        Task<ItemResponseDTO?> GetItemByIdAsync(int itemId);
     }
 }
