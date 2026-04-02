@@ -20,15 +20,14 @@ namespace PharmaStock.Controllers.Drug
         {
             _drugService = drugService;
         }
-        
+
         [HttpGet]
-       //    [Route("")]
         public async Task<IActionResult> GetAllDrugs([FromQuery] DrugFilterDTO filter)
         {
             var drugs = await _drugService.GetPaginatedResult(filter);
             return Ok(drugs);
         }
-        
+
         [HttpGet]
         [Route("{id}")]
         public async Task<IActionResult> GetDrugById(int id)
@@ -41,10 +40,63 @@ namespace PharmaStock.Controllers.Drug
             return Ok(drug);
         }
 
+        [HttpPost]
+        [Route("CreateDrug")]
+        public async Task<IActionResult> CreateDrug([FromBody] CreateDrugDTO request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Drug data is required.");
+            }
+            try
+            {
+                var result = await _drugService.CreateDrug(request);
+                return CreatedAtAction(nameof(GetDrugById), new { id = result.DrugId }, result);
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "DRUG_DUPLICATE")
+            {
+                return Conflict(new { errorCode = "DRUG_DUPLICATE", message = "This drug already exists." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut]
+        [Route("UpdateDrug/{DrugId}")]
+        public async Task<IActionResult> UpdateDrug([FromRoute] int DrugId, [FromBody] UpdateDrugDTO request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { message = "Request body is required." });
+            }
+            if (DrugId <= 0 || request.DrugId <= 0)
+            {
+                return BadRequest(new { message = "DrugId must be greater than 0." });
+            }
+            if (DrugId != request.DrugId)
+                return BadRequest(new { message = "ID Mismatch" });
+
+            try
+            {
+                var success = await _drugService.UpdateDrug(request);
+                if (!success) return NotFound();
+
+                return Ok(new { message = "Drug updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpDelete]
         [Route("DeleteDrug/{DrugId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> DeleteDrug([FromRoute] int DrugId)
         {
             var response = await _drugService.DeleteDrug(DrugId);
@@ -52,7 +104,7 @@ namespace PharmaStock.Controllers.Drug
             {
                 return Ok(new { message = response.Message });  // NoContent() => 204 delete success
             }
-            
+
             return BadRequest(new { message = response.Message });
         }
     }
