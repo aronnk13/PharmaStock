@@ -11,7 +11,7 @@ using PharmaStock.Core.Services;
 namespace PharmaStock.Controllers.Drug
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/drugs")]
     [Authorize(Roles = "Admin")]
     public class DrugController : ControllerBase
     {
