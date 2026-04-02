@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Drug;
 using PharmaStock.Core.Interfaces.Service;
@@ -11,6 +12,7 @@ namespace PharmaStock.Controllers.Drug
 {
     [ApiController]
     [Route("api/v1/drugs")]
+    [Authorize(Roles = "Admin")]
     public class DrugController : ControllerBase
     {
         private readonly IDrugService _drugService;
