@@ -116,10 +116,14 @@ public partial class PharmaStockContext : DbContext
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
     public virtual DbSet<Vendor> Vendors { get; set; }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=LTIN718770\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
+        => optionsBuilder.UseSqlServer("Server=LTIN718783\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
+
+    //  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //     => optionsBuilder.UseSqlServer("PharmaDbConnection");
+
+    // ToDo: Protect the connection string.
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
