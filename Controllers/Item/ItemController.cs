@@ -17,11 +17,11 @@ namespace PharmaStock.Controllers.Item
             _itemService = itemService;
         }
 
-        // ✅ CREATE
+  
         [HttpPost("create")]
-        public async Task<IActionResult> CreateItem([FromBody] CreateItemDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateItemDTO createItemDTO)
         {
-            var itemId = await _itemService.CreateItemAsync(dto);
+            var itemId = await _itemService.CreateAsync(createItemDTO);
 
             return Ok(new
             {
@@ -31,11 +31,11 @@ namespace PharmaStock.Controllers.Item
             });
         }
 
-        // ✅ GET BY ID (THIS ENABLES EDIT FLOW)
+   
         [HttpGet("{itemId}")]
-        public async Task<IActionResult> GetItemById(int itemId)
+        public async Task<IActionResult> GetById(int itemId)
         {
-            var item = await _itemService.GetItemByIdAsync(itemId);
+            var item = await _itemService.GetByIdAsync(itemId);
 
             if (item == null)
                 return NotFound(new { success = false, message = "Item not found" });
@@ -44,13 +44,13 @@ namespace PharmaStock.Controllers.Item
         }
 
 
-        // ✅ UPDATE
+      
         [HttpPut("update/{itemId}")]
-        public async Task<IActionResult> UpdateItem(
+        public async Task<IActionResult> Update(
             int itemId,
-            [FromBody] UpdateItemDTO dto)
+            [FromBody] UpdateItemDTO updateItemDTO)
         {
-            if (itemId != dto.ItemId)
+            if (itemId != updateItemDTO.ItemId)
                 return BadRequest(new
                 {
                     success = false,
@@ -59,7 +59,7 @@ namespace PharmaStock.Controllers.Item
 
             try
             {
-                await _itemService.UpdateItemAsync(dto);
+                await _itemService.UpdateAsync(updateItemDTO);
 
                 return Ok(new
                 {

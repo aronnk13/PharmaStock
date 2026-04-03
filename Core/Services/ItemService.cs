@@ -15,7 +15,7 @@ namespace PharmaStock.Core.Services
         }
 
         // ✅ CREATE
-        public async Task<int> CreateItemAsync(CreateItemDTO dto)
+        public async Task<int> CreateAsync(CreateItemDTO dto)
         {
             var item = new Item
             {
@@ -32,7 +32,7 @@ namespace PharmaStock.Core.Services
         }
 
         // ✅ UPDATE
-        public async System.Threading.Tasks.Task UpdateItemAsync(UpdateItemDTO dto)
+        public async System.Threading.Tasks.Task UpdateAsync(UpdateItemDTO dto)
         {
             var item = await _itemRepository.GetByIdAsync(dto.ItemId);
 
@@ -50,7 +50,7 @@ namespace PharmaStock.Core.Services
         }
 
         // ✅ GET BY ID (FOR EDIT FLOW)
-        public async Task<ItemResponseDTO?> GetItemByIdAsync(int itemId)
+        public async Task<ItemResponseDTO?> GetByIdAsync(int itemId)
         {
             var item = await _itemRepository.GetByIdAsync(itemId);
 
