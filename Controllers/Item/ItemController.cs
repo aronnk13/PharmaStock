@@ -17,11 +17,11 @@ namespace PharmaStock.Controllers.Item
             _itemService = itemService;
         }
 
-  
+
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] CreateItemDTO createItemDTO)
+        public async Task<IActionResult> Create([FromBody] ItemDTO itemDTO)
         {
-            var itemId = await _itemService.CreateAsync(createItemDTO);
+            var itemId = await _itemService.CreateAsync(itemDTO);
 
             return Ok(new
             {
@@ -31,7 +31,7 @@ namespace PharmaStock.Controllers.Item
             });
         }
 
-   
+
         [HttpGet("{itemId}")]
         public async Task<IActionResult> GetById(int itemId)
         {
@@ -44,22 +44,15 @@ namespace PharmaStock.Controllers.Item
         }
 
 
-      
+
         [HttpPut("update/{itemId}")]
         public async Task<IActionResult> Update(
-            int itemId,
-            [FromBody] UpdateItemDTO updateItemDTO)
+    int itemId,
+    [FromBody] ItemDTO itemDTO)
         {
-            if (itemId != updateItemDTO.ItemId)
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "ItemId mismatch"
-                });
-
             try
             {
-                await _itemService.UpdateAsync(updateItemDTO);
+                await _itemService.UpdateAsync(itemId, itemDTO);
 
                 return Ok(new
                 {

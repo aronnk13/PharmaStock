@@ -1,13 +1,14 @@
 using PharmaStock.Core.DTO.Item;
+using System.Threading.Tasks;
 
 namespace PharmaStock.Core.Interfaces.Service
 {
     public interface IItemService
     {
-        Task<int> CreateAsync(CreateItemDTO dto);
-        Task UpdateAsync(UpdateItemDTO dto);
+        Task<int> CreateAsync(ItemDTO itemDTO);
 
-       
-        Task<ItemResponseDTO?> GetByIdAsync(int itemId);
+        Task UpdateAsync(int itemId, ItemDTO itemDTO);
+
+        Task<ItemDTO?> GetByIdAsync(int itemId);
     }
 }

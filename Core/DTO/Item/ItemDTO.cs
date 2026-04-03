@@ -6,17 +6,15 @@ using System.Threading.Tasks;
 namespace PharmaStock.Core.DTO.Item
 {
 
-    public class UpdateItemDTO
+    public class ItemDTO
     {
-        public int ItemId { get; set; }
         public int DrugId { get; set; }
         public int? PackSize { get; set; }
         public int UoM { get; set; }
         public decimal ConversionToEach { get; set; }
         public string Barcode { get; set; } = null!;
         public bool Status { get; set; }
-        
-        
+        public int ItemId { get; internal set; }
     }
 
 }

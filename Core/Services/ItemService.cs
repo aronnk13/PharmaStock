@@ -14,50 +14,51 @@ namespace PharmaStock.Core.Services
             _itemRepository = itemRepository;
         }
 
-        // ✅ CREATE
-        public async Task<int> CreateAsync(CreateItemDTO dto)
+
+        public async Task<int> CreateAsync(ItemDTO itemDTO)
         {
             var item = new Item
             {
-                DrugId = dto.DrugId,
-                PackSize = dto.PackSize,
-                UoM = dto.UoM,
-                ConversionToEach = dto.ConversionToEach,
-                Barcode = dto.Barcode,
-                Status = dto.Status
+                DrugId = itemDTO.DrugId,
+                PackSize = itemDTO.PackSize,
+                UoM = itemDTO.UoM,
+                ConversionToEach = itemDTO.ConversionToEach,
+                Barcode = itemDTO.Barcode,
+                Status = itemDTO.Status
             };
 
             await _itemRepository.AddAsync(item);
             return item.ItemId;
         }
 
-        // ✅ UPDATE
-        public async System.Threading.Tasks.Task UpdateAsync(UpdateItemDTO dto)
+
+        public async System.Threading.Tasks.Task UpdateAsync(int itemId, ItemDTO itemDTO)
         {
-            var item = await _itemRepository.GetByIdAsync(dto.ItemId);
+            var item = await _itemRepository.GetByIdAsync(itemId);
 
             if (item == null)
                 throw new KeyNotFoundException("Item not found");
 
-            item.DrugId = dto.DrugId;
-            item.PackSize = dto.PackSize;
-            item.UoM = dto.UoM;
-            item.ConversionToEach = dto.ConversionToEach;
-            item.Barcode = dto.Barcode;
-            item.Status = dto.Status;
+            item.DrugId = itemDTO.DrugId;
+            item.PackSize = itemDTO.PackSize;
+            item.UoM = itemDTO.UoM;
+            item.ConversionToEach = itemDTO.ConversionToEach;
+            item.Barcode = itemDTO.Barcode;
+            item.Status = itemDTO.Status;
 
             await _itemRepository.UpdateAsync(item);
         }
 
-        // ✅ GET BY ID (FOR EDIT FLOW)
-        public async Task<ItemResponseDTO?> GetByIdAsync(int itemId)
+
+
+        public async Task<ItemDTO?> GetByIdAsync(int itemId)
         {
             var item = await _itemRepository.GetByIdAsync(itemId);
 
             if (item == null)
                 return null;
 
-            return new ItemResponseDTO
+            return new ItemDTO
             {
                 ItemId = item.ItemId,
                 DrugId = item.DrugId,
