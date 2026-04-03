@@ -30,8 +30,11 @@ namespace PharmaStock.Core.Services
             }
             return new GetDrugDTO
             {
-                Atccode = drugModel.Atccode,
+                GenericName = drugModel.GenericName,   // was missing
                 BrandName = drugModel.BrandName,
+                Strength = drugModel.Strength,         // was missing
+                Form = drugModel.Form,                 // was missing
+                Atccode = drugModel.Atccode,
                 ControlClass = drugModel.ControlClass,
                 StorageClass = drugModel.StorageClass,
                 Status = drugModel.Status
@@ -81,31 +84,35 @@ namespace PharmaStock.Core.Services
             return drug;
         }
 
-     public async Task<bool> UpdateDrug(UpdateDrugDTO updateDrugDTO)
-{
-    // 1. Verify the drug exists before trying to update
-    var existingDrug = await _drugRepository.GetByIdAsync(updateDrugDTO.DrugId);
-    if (existingDrug == null) return false;
+        public async Task<bool> UpdateDrug(int drugId, UpdateDrugDTO updateDrugDTO)
+        {
+            // 1. Verify the drug exists before trying to update
+            var existingDrug = await _drugRepository.GetByIdAsync(drugId);
+            if (existingDrug == null) return false;
 
-    // 2. Duplicate Check
-    // Pass 'updateDrugDTO.DrugId' as the 'excludeId' parameter
-    var isDuplicate = await _drugRepository.IsDrugExists(
-        updateDrugDTO.GenericName, 
-        updateDrugDTO.Strength, 
-        updateDrugDTO.Form, 
-        updateDrugDTO.DrugId 
-    );
+            // 2. Duplicate Check
+            // Pass 'updateDrugDTO.DrugId' as the 'excludeId' parameter
+            var isDuplicate = await _drugRepository.IsDrugExists(
+                updateDrugDTO.GenericName,
+                updateDrugDTO.Strength,
+                updateDrugDTO.Form,
+                drugId
+            );
 
-    if (isDuplicate) throw new InvalidOperationException("DRUG_DUPLICATE");
+            if (isDuplicate) throw new InvalidOperationException("DRUG_DUPLICATE");
 
-    // 3. Map properties
-    existingDrug.GenericName = updateDrugDTO.GenericName;
-    existingDrug.Strength = updateDrugDTO.Strength;
-    existingDrug.Form = updateDrugDTO.Form; // This is the 'int'
-    // ... update other properties ...
+            // 3. Map properties
+            existingDrug.GenericName = updateDrugDTO.GenericName;
+            existingDrug.BrandName = updateDrugDTO.BrandName;
+            existingDrug.Strength = updateDrugDTO.Strength;
+            existingDrug.Form = updateDrugDTO.Form;
+            existingDrug.Atccode = updateDrugDTO.Atccode;
+            existingDrug.ControlClass = updateDrugDTO.ControlClass;
+            existingDrug.StorageClass = updateDrugDTO.StorageClass;
+            existingDrug.Status = updateDrugDTO.Status;
 
-    return await _drugRepository.UpdateAsync(existingDrug);
-}
+            return await _drugRepository.UpdateAsync(existingDrug);
+        }
 
         public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
         {
