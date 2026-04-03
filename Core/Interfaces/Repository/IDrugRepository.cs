@@ -13,6 +13,7 @@ namespace PharmaStock.Core.Interfaces
     {
         //public GetDrugDTO GetByIdAsync(int id);
         public Task<(List<Drug>, int)> GetDrugsByFilterAsync(DrugFilterDTO filter);
-        Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId);    
+        Task<bool> IsDrugExists(string genericName, string strength, int form, int? excludeId = null);
+        Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId);
     }
 }

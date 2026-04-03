@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Item;
 using PharmaStock.Core.Interfaces.Service;
@@ -6,6 +7,7 @@ namespace PharmaStock.Controllers.Item
 {
     [ApiController]
     [Route("api/item")]
+    [Authorize(Roles = "Admin")]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
