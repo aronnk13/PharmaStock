@@ -10,8 +10,7 @@ public partial class PharmaStockContext : DbContext
     {
     }
 
-    public PharmaStockContext(DbContextOptions<PharmaStockContext> options)
-        : base(options)
+    public PharmaStockContext(DbContextOptions<PharmaStockContext> options): base(options)
     {
     }
 
@@ -116,6 +115,7 @@ public partial class PharmaStockContext : DbContext
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
     public virtual DbSet<Vendor> Vendors { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Server=LTIN718783\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
         
