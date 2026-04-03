@@ -8,10 +8,6 @@ namespace PharmaStock.Core.DTO.Drug
 {
     public class UpdateDrugDTO
     {
-        [Required(ErrorMessage = "DrugId is required for updates")]
-        [Range(1, int.MaxValue, ErrorMessage = "DrugId must be greater than 0.")]
-        public int DrugId { get; set; }
-
         [Required(ErrorMessage = "Generic Name is required")]
         public string GenericName { get; set; } = null!;
 
