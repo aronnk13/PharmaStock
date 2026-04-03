@@ -50,8 +50,8 @@ namespace PharmaStock.Controllers.Drug
             }
             try
             {
-                var result = await _drugService.CreateDrug(request);
-                return CreatedAtAction(nameof(GetDrugById), new { id = result.DrugId }, result);
+                await _drugService.CreateDrug(request);
+                return Ok(new { message = "Drug has been created successfully." });
             }
             catch (InvalidOperationException ex) when (ex.Message == "DRUG_DUPLICATE")
             {
