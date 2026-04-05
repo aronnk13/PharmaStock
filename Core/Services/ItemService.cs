@@ -1,4 +1,6 @@
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Core.DTO.Item;
+using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
@@ -8,10 +10,12 @@ namespace PharmaStock.Core.Services
     public class ItemService : IItemService
     {
         private readonly IItemRepository _itemRepository;
+        private readonly IAuditLogService _auditLogService;
 
-        public ItemService(IItemRepository itemRepository)
+        public ItemService(IItemRepository itemRepository, IAuditLogService auditLogService)
         {
             _itemRepository = itemRepository;
+            _auditLogService = auditLogService;
         }
 
 
@@ -68,6 +72,10 @@ namespace PharmaStock.Core.Services
                 Barcode = item.Barcode!,
                 Status = item.Status
             };
+        }
+        public async Task<ItemDeletedResponseDTO> DeleteAsync(int itemId,int requestingUserId)
+        {
+            return await _itemRepository.DeleteItem(itemId, requestingUserId);
         }
     }
 }
