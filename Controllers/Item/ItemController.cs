@@ -46,7 +46,7 @@ namespace PharmaStock.Controllers.Item
 
 
         [HttpPut("update/{itemId}")]
-        public async Task<IActionResult> Update(int itemId, [FromBody] ItemDTO itemDTO)
+        public async Task<IActionResult> Update(int itemId,[FromBody] ItemDTO itemDTO)
         {
             try
             {
