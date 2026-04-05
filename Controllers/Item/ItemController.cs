@@ -67,5 +67,25 @@ namespace PharmaStock.Controllers.Item
                 });
             }
         }
+
+        [HttpDelete]
+        [Route("DeleteItem/{itemId}")]
+        public async Task<IActionResult> Delete(int itemId)
+        {
+            var userIdClaim = User.FindFirst("userId");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var requestingUserId))
+            {
+                return Unauthorized(new { success = false, message = "User ID claim missing or invalid" });
+            }
+
+            var response = await _itemService.DeleteAsync(itemId, requestingUserId);
+
+            if (response.IsDeleted)
+            {
+                return Ok(new { success = true, message = response.Message });
+            }
+
+            return BadRequest(new { success = false, message = response.Message });
+        }
     }
 }
