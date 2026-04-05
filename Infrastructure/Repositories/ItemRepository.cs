@@ -30,5 +30,16 @@ namespace PharmaStock.Infrastructure.Repositories
             _context.Items.Update(item);
             await _context.SaveChangesAsync();
         }
+        public async Task<List<Item>> GetItemsAsync(int? drugId = null)
+        {
+            var query = _context.Items.AsQueryable();
+
+            if (drugId.HasValue)
+            {
+                query = query.Where(i => i.DrugId == drugId.Value);
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

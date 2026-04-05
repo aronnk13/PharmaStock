@@ -46,7 +46,7 @@ namespace PharmaStock.Controllers.Item
 
 
         [HttpPut("update/{itemId}")]
-        public async Task<IActionResult> Update(int itemId,[FromBody] ItemDTO itemDTO)
+        public async Task<IActionResult> Update(int itemId, [FromBody] ItemDTO itemDTO)
         {
             try
             {
@@ -66,6 +66,12 @@ namespace PharmaStock.Controllers.Item
                     message = ex.Message
                 });
             }
+        }
+        [HttpGet("list")]
+        public async Task<IActionResult> GetItems([FromQuery] int? drugId)
+        {
+            var items = await _itemService.GetItemsAsync(drugId);
+            return Ok(items);
         }
     }
 }

@@ -69,5 +69,20 @@ namespace PharmaStock.Core.Services
                 Status = item.Status
             };
         }
+        public async Task<List<ItemDTO>> GetItemsAsync(int? drugId = null)
+        {
+            var items = await _itemRepository.GetItemsAsync(drugId);
+
+            return items.Select(i => new ItemDTO
+            {
+                ItemId = i.ItemId,
+                DrugId = i.DrugId,
+                PackSize = i.PackSize,
+                UoM = i.UoM,
+                ConversionToEach = i.ConversionToEach,
+                Barcode = i.Barcode!,
+                Status = i.Status
+            }).ToList();
+        }
     }
 }
