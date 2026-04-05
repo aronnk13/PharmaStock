@@ -10,7 +10,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.Bin
 {
     [ApiController]
-    [Route("api/v1/bins")]
+    [Route("api/bins")]
     [Authorize(Roles = "Admin")]
     public class BinController : ControllerBase
     {
