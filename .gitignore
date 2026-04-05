@@ -31,7 +31,9 @@ x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
-[Bb]in/
+bin/
+!Controllers/Bin/
+!Core/DTO/Bin/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
