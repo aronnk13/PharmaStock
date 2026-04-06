@@ -34,12 +34,8 @@ namespace PharmaStock.Controllers.Bin
         [Route("CreateBin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateBin([FromBody] CreateBinDTO request)
         {
             if (request == null)
@@ -86,10 +82,6 @@ namespace PharmaStock.Controllers.Bin
         [Route("GetBinById/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetBinById(int binId)
         {
             var bin = await _binService.GetBinByIdAsync(binId);
@@ -97,15 +89,12 @@ namespace PharmaStock.Controllers.Bin
                 return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
             return Ok(bin);
         }
-
+        
         // GET api/v1/bins/GetAllBins
         [HttpGet]
         [Route("GetAllBins")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllBins([FromQuery] BinFilterDTO filter)
         {
             var result = await _binService.GetAllBinsAsync(filter);
@@ -117,11 +106,7 @@ namespace PharmaStock.Controllers.Bin
         [Route("UpdateBin/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateBin([FromRoute] int binId, [FromBody] UpdateBinDTO request)
         {
             if (request == null)
@@ -179,11 +164,7 @@ namespace PharmaStock.Controllers.Bin
         [Route("DeleteBin/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteBin([FromRoute] int binId)
         {
             if (binId <= 0)
