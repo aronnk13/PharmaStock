@@ -46,7 +46,7 @@ namespace PharmaStock.Controllers.Item
 
 
         [HttpPut("update/{itemId}")]
-        public async Task<IActionResult> Update(int itemId,[FromBody] ItemDTO itemDTO)
+        public async Task<IActionResult> Update(int itemId, [FromBody] ItemDTO itemDTO)
         {
             try
             {
@@ -72,13 +72,12 @@ namespace PharmaStock.Controllers.Item
         [Route("DeleteItem/{itemId}")]
         public async Task<IActionResult> Delete(int itemId)
         {
-            var userIdClaim = User.FindFirst("userId");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var requestingUserId))
+            if (itemId <= 0)
             {
-                return Unauthorized(new { success = false, message = "User ID claim missing or invalid" });
+                return BadRequest(new { success = false, message = "Invalid itemId. Must be greater than zero." });
             }
 
-            var response = await _itemService.DeleteAsync(itemId, requestingUserId);
+            var response = await _itemService.DeleteAsync(itemId);
 
             if (response.IsDeleted)
             {

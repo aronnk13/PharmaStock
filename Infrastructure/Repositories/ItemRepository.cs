@@ -10,12 +10,10 @@ namespace PharmaStock.Infrastructure.Repositories
     public class ItemRepository : IItemRepository
     {
         private readonly PharmaStockContext _context;
-        private readonly IAuditLogService _auditLogService;
 
-        public ItemRepository(PharmaStockContext context, IAuditLogService auditLogService)
+        public ItemRepository(PharmaStockContext context)
         {
             _context = context;
-            _auditLogService = auditLogService;
         }
 
         public async Task<Item?> GetByIdAsync(int itemId)
@@ -35,7 +33,7 @@ namespace PharmaStock.Infrastructure.Repositories
             _context.Items.Update(item);
             await _context.SaveChangesAsync();
         }
-        public async Task<ItemDeletedResponseDTO> DeleteItem(int itemId, int requestingUserId)
+        public async Task<ItemDeletedResponseDTO> DeleteItem(int itemId)
         {
             try
             {
@@ -57,13 +55,6 @@ namespace PharmaStock.Infrastructure.Repositories
 
                 if (rowsAffected > 0)
                 {
-                    await _auditLogService.CreateLogAsync(new AuditDto
-                    {
-                        UserId = requestingUserId,
-                        Action = "INACTIVATE",
-                        Resource = "Item",
-                        Metadata = $"{{\"itemId\":{itemId}}}"
-                    });
                     return new ItemDeletedResponseDTO
                     {
                         IsDeleted = true,

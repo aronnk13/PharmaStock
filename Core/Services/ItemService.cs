@@ -10,12 +10,10 @@ namespace PharmaStock.Core.Services
     public class ItemService : IItemService
     {
         private readonly IItemRepository _itemRepository;
-        private readonly IAuditLogService _auditLogService;
 
-        public ItemService(IItemRepository itemRepository, IAuditLogService auditLogService)
+        public ItemService(IItemRepository itemRepository)
         {
             _itemRepository = itemRepository;
-            _auditLogService = auditLogService;
         }
 
 
@@ -73,9 +71,9 @@ namespace PharmaStock.Core.Services
                 Status = item.Status
             };
         }
-        public async Task<ItemDeletedResponseDTO> DeleteAsync(int itemId,int requestingUserId)
+        public async Task<ItemDeletedResponseDTO> DeleteAsync(int itemId)
         {
-            return await _itemRepository.DeleteItem(itemId, requestingUserId);
+            return await _itemRepository.DeleteItem(itemId);
         }
     }
 }
