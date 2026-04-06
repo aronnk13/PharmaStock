@@ -29,17 +29,14 @@ namespace PharmaStock.Controllers.Bin
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
-        // POST api/v1/bins/CreateBin
+        // POST api/bins/CreateBin
         [HttpPost]
         [Route("CreateBin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+       
         public async Task<IActionResult> CreateBin([FromBody] CreateBinDTO request)
         {
             if (request == null)
@@ -81,33 +78,29 @@ namespace PharmaStock.Controllers.Bin
             }
         }
 
-        // GET api/v1/bins/GetBinById/{binId}
+        // GET api/bins/GetBinById/{binId}
         [HttpGet]
         [Route("GetBinById/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetBinById(int binId)
         {
+            if (binId <= 0)
+                return BadRequest(new { message = "BinId must be greater than 0." });
+
             var bin = await _binService.GetBinByIdAsync(binId);
             if (bin == null)
                 return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
             return Ok(bin);
         }
 
-        // PUT api/v1/bins/UpdateBin/{binId}
+        // PUT api/bins/UpdateBin/{binId}
         [HttpPut]
         [Route("UpdateBin/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        
         public async Task<IActionResult> UpdateBin([FromRoute] int binId, [FromBody] UpdateBinDTO request)
         {
             if (request == null)
