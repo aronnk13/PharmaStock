@@ -1,4 +1,6 @@
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Core.DTO.Item;
+using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
@@ -68,6 +70,10 @@ namespace PharmaStock.Core.Services
                 Barcode = item.Barcode!,
                 Status = item.Status
             };
+        }
+        public async Task<ItemDeletedResponseDTO> DeleteAsync(int itemId)
+        {
+            return await _itemRepository.DeleteItem(itemId);
         }
     }
 }

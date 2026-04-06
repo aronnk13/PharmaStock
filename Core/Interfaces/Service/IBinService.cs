@@ -10,5 +10,6 @@ namespace PharmaStock.Core.Interfaces.Service
         Task<GetBinDTO> DeleteBinAsync(int binId);
         Task<GetBinDTO?> GetBinByIdAsync(int binId);
         Task<PaginatedResult<GetBinDTO>> GetAllBinsAsync(BinFilterDTO filter);
+        Task<GetBinDTO?> GetBinByIdAsync(int binId);
     }
 }

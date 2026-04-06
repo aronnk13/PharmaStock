@@ -91,6 +91,7 @@ builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<IBinRepository, BinRepository>();
 builder.Services.AddScoped<IBinService, BinService>();
 
+
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
 builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
