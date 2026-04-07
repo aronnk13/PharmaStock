@@ -5,8 +5,9 @@ namespace PharmaStock.Core.Interfaces
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<T?> GetByIdAsync(int id);
-        Task AddAsync(T obj);   
+        Task AddAsync(T obj);
         void Update(T obj);
+        Task<bool> UpdateAsync(T obj);
         Task DeleteAsync(int id);
     }
 }

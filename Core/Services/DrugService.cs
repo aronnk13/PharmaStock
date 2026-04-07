@@ -8,11 +8,12 @@ using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Infrastructure.Repositories;
 using PharmaStock.Core.Interfaces.Repository;
+using PharmaStock.Models;
 
 
 namespace PharmaStock.Core.Services
 {
-    public class DrugService: IDrugService
+    public class DrugService : IDrugService
     {
         private readonly IDrugRepository _drugRepository;
         public DrugService(IDrugRepository drugRepository)
@@ -29,9 +30,11 @@ namespace PharmaStock.Core.Services
             }
             return new GetDrugDTO
             {
-                //Id = drugModel.DrugId,
-                Atccode = drugModel.Atccode,
+                GenericName = drugModel.GenericName,   // was missing
                 BrandName = drugModel.BrandName,
+                Strength = drugModel.Strength,         // was missing
+                Form = drugModel.Form,                 // was missing
+                Atccode = drugModel.Atccode,
                 ControlClass = drugModel.ControlClass,
                 StorageClass = drugModel.StorageClass,
                 Status = drugModel.Status
@@ -57,7 +60,60 @@ namespace PharmaStock.Core.Services
                 PageSize = filter.PageSize
             };
         }
-        
+        public async Task<Drug> CreateDrug(CreateDrugDTO createDrugDTO)
+        {
+            // 1. Duplicate Check
+            var isDuplicate = await _drugRepository.IsDrugExists(createDrugDTO.GenericName, createDrugDTO.Strength, createDrugDTO.Form);
+            if (isDuplicate) throw new InvalidOperationException("DRUG_DUPLICATE");
+
+            // 2. Mapping DTO to Entity
+            var drug = new Drug
+            {
+                GenericName = createDrugDTO.GenericName,
+                BrandName = createDrugDTO.BrandName,
+                Strength = createDrugDTO.Strength,
+                Form = createDrugDTO.Form,
+                Atccode = createDrugDTO.Atccode,
+                StorageClass = createDrugDTO.StorageClass,
+                ControlClass = createDrugDTO.ControlClass,
+                Status = createDrugDTO.Status
+            };
+
+            // 3. Use Generic Repository Add
+            await _drugRepository.AddAsync(drug);
+            return drug;
+        }
+
+        public async Task<bool> UpdateDrug(int drugId, UpdateDrugDTO updateDrugDTO)
+        {
+            // 1. Verify the drug exists before trying to update
+            var existingDrug = await _drugRepository.GetByIdAsync(drugId);
+            if (existingDrug == null) return false;
+
+            // 2. Duplicate Check
+            // Pass 'updateDrugDTO.DrugId' as the 'excludeId' parameter
+            var isDuplicate = await _drugRepository.IsDrugExists(
+                updateDrugDTO.GenericName,
+                updateDrugDTO.Strength,
+                updateDrugDTO.Form,
+                drugId
+            );
+
+            if (isDuplicate) throw new InvalidOperationException("DRUG_DUPLICATE");
+
+            // 3. Map properties
+            existingDrug.GenericName = updateDrugDTO.GenericName;
+            existingDrug.BrandName = updateDrugDTO.BrandName;
+            existingDrug.Strength = updateDrugDTO.Strength;
+            existingDrug.Form = updateDrugDTO.Form;
+            existingDrug.Atccode = updateDrugDTO.Atccode;
+            existingDrug.ControlClass = updateDrugDTO.ControlClass;
+            existingDrug.StorageClass = updateDrugDTO.StorageClass;
+            existingDrug.Status = updateDrugDTO.Status;
+
+            return await _drugRepository.UpdateAsync(existingDrug);
+        }
+
         public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
         {
             return await _drugRepository.DeleteDrug(DrugId);
