@@ -1,0 +1,11 @@
+using PharmaStock.Core.DTO.Bin;
+
+namespace PharmaStock.Core.Interfaces.Service
+{
+    public interface IBinService
+    {
+        Task<GetBinDTO> CreateBinAsync(CreateBinDTO request);
+        Task<GetBinDTO> UpdateBinAsync(int binId, UpdateBinDTO request);
+        Task<GetBinDTO?> GetBinByIdAsync(int binId);
+    }
+}

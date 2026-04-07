@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using pharmaStock.Core.DTO.Item;
+using PharmaStock.Core.DTO;
+using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Models;
 
@@ -46,6 +48,50 @@ namespace PharmaStock.Infrastructure.Repositories
             }
 
             return await query.ToListAsync();
+        }
+        public async Task<ItemDeletedResponseDTO> DeleteItem(int itemId)
+        {
+            try
+            {
+                var item = await _context.Items.FindAsync(itemId);
+
+                if (item == null)
+                {
+                    return new ItemDeletedResponseDTO
+                    {
+                        IsDeleted = false,
+                        Message = "Item not found."
+                    };
+                }
+                // Soft delete
+                item.Status = false;
+                _context.Items.Update(item);
+
+                var rowsAffected = await _context.SaveChangesAsync();
+
+                if (rowsAffected > 0)
+                {
+                    return new ItemDeletedResponseDTO
+                    {
+                        IsDeleted = true,
+                        Message = "Item deleted successfully."
+                    };
+                }
+
+                return new ItemDeletedResponseDTO
+                {
+                    IsDeleted = false,
+                    Message = "Delete failed: No changes were saved to the database."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ItemDeletedResponseDTO
+                {
+                    IsDeleted = false,
+                    Message = $"An error occurred: {ex.Message}"
+                };
+            }
         }
     }
 }
