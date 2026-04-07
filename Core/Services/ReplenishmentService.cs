@@ -124,7 +124,7 @@ namespace PharmaStock.Core.Services
             {
                 if (upsertReplenishmentRuleDTO.IsCreate)
                 {
-                     if (await _replenishmentRuleRepository.IsRuleExist(upsertReplenishmentRuleDTO.LocationId, upsertReplenishmentRuleDTO.ItemId))
+                     if (await _replenishmentRuleRepository.IsRuleExistAsync(upsertReplenishmentRuleDTO.LocationId, upsertReplenishmentRuleDTO.ItemId))
                     {
                         return new UpsertResponse
                         {
