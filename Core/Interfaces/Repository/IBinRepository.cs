@@ -11,5 +11,6 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<bool> HasInventoryAsync(int binId);
         Task<bool> HasOpenPutAwayTasksAsync(int binId);
         Task<GetBinDTO?> GetBinDtoByIdAsync(int binId);
+        Task<(List<GetBinDTO>, int)> GetBinsByFilterAsync(BinFilterDTO filter);
     }
 }

@@ -64,5 +64,45 @@ namespace PharmaStock.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<(List<GetBinDTO>, int)> GetBinsByFilterAsync(BinFilterDTO filter)
+        {
+            var query = _context.Bins.AsQueryable();
+
+            if (filter.LocationId.HasValue)
+                query = query.Where(b => b.LocationId == filter.LocationId.Value);
+
+            if (filter.StorageClassId.HasValue)
+                query = query.Where(b => b.BinStorageClass == filter.StorageClassId.Value);
+
+            if (filter.IsQuarantine.HasValue)
+                query = query.Where(b => b.IsQuarantine == filter.IsQuarantine.Value);
+
+            if (filter.IsActive.HasValue)
+                query = query.Where(b => b.StatusId == filter.IsActive.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var pageSize = filter.PageSize > 100 ? 100 : filter.PageSize;
+
+            var bins = await query
+                .Skip((filter.Page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(b => new GetBinDTO
+                {
+                    BinId = b.BinId,
+                    LocationId = b.LocationId,
+                    LocationName = b.Location.Name,
+                    Code = b.Code,
+                    BinStorageClassId = b.BinStorageClass,
+                    StorageClass = b.BinStorageClassNavigation.StorageClass,
+                    IsQuarantine = b.IsQuarantine,
+                    MaxCapacity = b.MaxCapacity,
+                    IsActive = b.StatusId
+                })
+                .ToListAsync();
+
+            return (bins, totalCount);
+        }
     }
 }

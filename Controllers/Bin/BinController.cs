@@ -29,6 +29,7 @@ namespace PharmaStock.Controllers.Bin
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
+        // POST api/v1/bins/CreateBin
         // POST api/bins/CreateBin
         [HttpPost]
         [Route("CreateBin")]
@@ -78,6 +79,7 @@ namespace PharmaStock.Controllers.Bin
             }
         }
 
+        // GET api/v1/bins/GetBinById/{binId}
         // GET api/bins/GetBinById/{binId}
         [HttpGet]
         [Route("GetBinById/{binId}")]
@@ -93,6 +95,19 @@ namespace PharmaStock.Controllers.Bin
                 return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
             return Ok(bin);
         }
+        
+        // GET api/v1/bins/GetAllBins
+        [HttpGet]
+        [Route("GetAllBins")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAllBins([FromQuery] BinFilterDTO filter)
+        {
+            var result = await _binService.GetAllBinsAsync(filter);
+            return Ok(result);
+        }
+
+        // PUT api/v1/bins/UpdateBin/{binId}
 
         // PUT api/bins/UpdateBin/{binId}
         [HttpPut]
@@ -146,6 +161,57 @@ namespace PharmaStock.Controllers.Bin
             catch (InvalidOperationException ex) when (ex.Message == "BIN_OPEN_TASKS")
             {
                 return Conflict(new { errorCode = "BIN_OPEN_TASKS", message = "Cannot deactivate bin with open put-away tasks." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { errorCode = "INTERNAL_ERROR", message = ex.Message });
+            }
+        }
+
+        // DELETE api/v1/bins/DeleteBin/{binId}
+        [HttpDelete]
+        [Route("DeleteBin/{binId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> DeleteBin([FromRoute] int binId)
+        {
+            if (binId <= 0)
+                return BadRequest(new { errorCode = "VALIDATION_ERROR", message = "BinId must be greater than 0." });
+
+            try
+            {
+                var oldBin = await _binService.GetBinByIdAsync(binId);
+                if (oldBin == null)
+                    return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
+
+                var result = await _binService.DeleteBinAsync(binId);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "BIN_DELETED",
+                    Resource = $"Bin:{binId}",
+                    Metadata = JsonSerializer.Serialize(new { old = oldBin, @new = result })
+                });
+
+                return Ok(new { message = "Bin deleted successfully." });
+            }
+            catch (KeyNotFoundException ex) when (ex.Message == "BIN_NOT_FOUND")
+            {
+                return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "BIN_ALREADY_DELETED")
+            {
+                return Conflict(new { errorCode = "BIN_ALREADY_DELETED", message = "Bin is already deleted." });
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "BIN_HAS_INVENTORY")
+            {
+                return Conflict(new { errorCode = "BIN_HAS_INVENTORY", message = "Cannot delete bin while it has inventory." });
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "BIN_OPEN_TASKS")
+            {
+                return Conflict(new { errorCode = "BIN_OPEN_TASKS", message = "Cannot delete bin with open put-away tasks." });
             }
             catch (Exception ex)
             {
