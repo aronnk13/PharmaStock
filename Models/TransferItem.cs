@@ -8,7 +8,7 @@ public partial class TransferItem
     public int TransferItemId { get; set; }
 
     public int TransferOrderId { get; set; }
-
+    
     public int ItemId { get; set; }
 
     public int InventoryLotId { get; set; }
