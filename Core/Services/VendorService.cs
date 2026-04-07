@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using PharmaStock.Core.DTO.Vendor;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
@@ -17,7 +13,7 @@ namespace PharmaStock.Core.Services
         {
             _vendorRepository = vendorRepository;
         }
-      
+
         public async Task<VendorDTO> CreateAsync(VendorDTO dto)
         {
             var existing = await _vendorRepository.GetByNameAsync(dto.Name);
@@ -34,6 +30,7 @@ namespace PharmaStock.Core.Services
                 Phone = dto.Phone,
                 StatusId = true
             };
+
             await _vendorRepository.AddAsync(vendor);
 
             dto.VendorId = vendor.VendorId;
@@ -47,14 +44,18 @@ namespace PharmaStock.Core.Services
             return vendor == null ? null : Map(vendor);
         }
 
-        public async Task<IEnumerable<VendorDTO>> GetAllAsync(bool includeInactive)
+
+        public async Task<IEnumerable<VendorDTO>> GetAllAsync(bool includeInactive, string? name)
         {
             var vendors = await _vendorRepository.GetAllAsync();
-            return vendors
-                .Where(v => includeInactive || v.StatusId == true)
-                .Select(Map);
+
+            var filtered = vendors.Where(v =>
+                (includeInactive || v.StatusId == true) &&
+                (string.IsNullOrEmpty(name) || v.Name.Contains(name)));
+
+            return filtered.Select(Map);
         }
-        
+
         public async System.Threading.Tasks.Task UpdateAsync(int vendorId, VendorDTO dto)
         {
             var vendor = await _vendorRepository.GetByIdAsync(vendorId);
@@ -68,20 +69,16 @@ namespace PharmaStock.Core.Services
 
             await _vendorRepository.UpdateAsync(vendor);
         }
+
         
-        public async System.Threading.Tasks.Task SetStatusAsync(int vendorId, bool isActive)
+        public async System.Threading.Tasks.Task DeleteAsync(int vendorId)
         {
             var vendor = await _vendorRepository.GetByIdAsync(vendorId);
             if (vendor == null)
                 throw new KeyNotFoundException("Vendor not found");
 
-            vendor.StatusId = isActive;
+            vendor.StatusId = false;
             await _vendorRepository.UpdateAsync(vendor);
-        }
-
-        public async System.Threading.Tasks.Task DeleteAsync(int vendorId)
-        {
-            await SetStatusAsync(vendorId, false);
         }
 
         private static VendorDTO Map(Vendor v) => new()
@@ -92,7 +89,7 @@ namespace PharmaStock.Core.Services
             Rating = v.Rating,
             StatusId = (bool)v.StatusId,
             Email = v.Email,
-            Phone = v.Phone,
+            Phone = v.Phone
         };
     }
 }

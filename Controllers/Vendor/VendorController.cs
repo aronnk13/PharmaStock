@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Vendor;
@@ -10,7 +6,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.Vendor
 {
     [ApiController]
-    [Authorize(Roles = "ProcurementOfficer")] // Restrict access to procurement officers
+    [Authorize(Roles = "ProcurementOfficer")]
     [Route("api/vendor")]
     public class VendorController : ControllerBase
     {
@@ -42,11 +38,14 @@ namespace PharmaStock.Controllers.Vendor
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] bool includeInactive = false)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] bool includeInactive = false,
+            [FromQuery] string? name = null)
         {
-            return Ok(await _vendorService.GetAllAsync(includeInactive));
+            return Ok(await _vendorService.GetAllAsync(includeInactive, name));
         }
 
+  
         [HttpPut("update/{vendorId}")]
         public async Task<IActionResult> Update(int vendorId, VendorDTO dto)
         {
@@ -54,12 +53,6 @@ namespace PharmaStock.Controllers.Vendor
             return Ok(new { success = true });
         }
 
-        [HttpPatch("{vendorId}/status")]
-        public async Task<IActionResult> ChangeStatus(int vendorId, bool isActive)
-        {
-            await _vendorService.SetStatusAsync(vendorId, isActive);
-            return Ok(new { success = true });
-        }
 
         [HttpDelete("{vendorId}")]
         public async Task<IActionResult> Delete(int vendorId)
