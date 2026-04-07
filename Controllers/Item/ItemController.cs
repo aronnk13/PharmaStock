@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Core.DTO.Item;
 using PharmaStock.Core.Interfaces.Service;
 
@@ -67,7 +68,27 @@ namespace PharmaStock.Controllers.Item
                 });
             }
         }
+        [HttpGet("Items")]
+        public async Task<IActionResult> GetFiltered([FromBody] ItemFilterDTO filter)
+        {
+            if (filter.PackSize.HasValue && filter.PackSize.Value <= 0)
+            {
+                return BadRequest(new { success = false, message = "PackSize must be greater than zero." });
+            }
 
+            if (filter.PackSize.HasValue && filter.PackSize.Value > 1000)
+            {
+                return BadRequest(new { success = false, message = "PackSize cannot exceed 1000 units." });
+            }
+
+            if (filter.IsActive != null && !(filter.IsActive == true || filter.IsActive == false))
+            {
+                return BadRequest(new { success = false, message = "IsActive must be true or false." });
+            }
+
+            var items = await _itemService.GetItemsFilteredAsync(filter);
+            return Ok(items);
+        }
         [HttpDelete]
         [Route("DeleteItem/{itemId}")]
         public async Task<IActionResult> Delete(int itemId)

@@ -11,6 +11,7 @@ namespace PharmaStock.Core.Interfaces.Service
         Task UpdateAsync(int itemId, ItemDTO itemDTO);
 
         Task<ItemDTO?> GetByIdAsync(int itemId);
+        Task<List<ItemDTO>> GetItemsFilteredAsync(ItemFilterDTO filter);
         Task<ItemDeletedResponseDTO> DeleteAsync(int itemId);
     }
 }

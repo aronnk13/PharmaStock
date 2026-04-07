@@ -14,6 +14,7 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<Item?> GetByIdAsync(int itemId);
         System.Threading.Tasks.Task AddAsync(Item item);
         System.Threading.Tasks.Task UpdateAsync(Item item);
+        Task<List<Item>> GetItemsFilteredAsync(ItemFilterDTO filter);
         Task<ItemDeletedResponseDTO> DeleteItem(int itemId);
     }
 

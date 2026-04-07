@@ -33,6 +33,22 @@ namespace PharmaStock.Infrastructure.Repositories
             _context.Items.Update(item);
             await _context.SaveChangesAsync();
         }
+        public async Task<List<Item>> GetItemsFilteredAsync(ItemFilterDTO filter)
+        {
+            var query = _context.Items.AsQueryable();
+
+            if (filter.PackSize.HasValue)
+            {
+                query = query.Where(i => i.PackSize == filter.PackSize.Value);
+            }
+
+            if (filter.IsActive.HasValue)
+            {
+                query = query.Where(i => i.Status == filter.IsActive.Value);
+            }
+
+            return await query.ToListAsync();
+        }
         public async Task<ItemDeletedResponseDTO> DeleteItem(int itemId)
         {
             try
