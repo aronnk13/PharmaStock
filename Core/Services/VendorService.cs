@@ -17,8 +17,7 @@ namespace PharmaStock.Core.Services
         {
             _vendorRepository = vendorRepository;
         }
-
-        // AC‑VP‑01 & AC‑VP‑02
+      
         public async Task<VendorDTO> CreateAsync(VendorDTO dto)
         {
             var existing = await _vendorRepository.GetByNameAsync(dto.Name);
@@ -35,7 +34,6 @@ namespace PharmaStock.Core.Services
                 Phone = dto.Phone,
                 StatusId = true
             };
-
             await _vendorRepository.AddAsync(vendor);
 
             dto.VendorId = vendor.VendorId;
@@ -56,8 +54,7 @@ namespace PharmaStock.Core.Services
                 .Where(v => includeInactive || v.StatusId == true)
                 .Select(Map);
         }
-
-        // AC‑VP‑03
+        
         public async System.Threading.Tasks.Task UpdateAsync(int vendorId, VendorDTO dto)
         {
             var vendor = await _vendorRepository.GetByIdAsync(vendorId);
@@ -69,11 +66,9 @@ namespace PharmaStock.Core.Services
             vendor.Email = dto.Email;
             vendor.Phone = dto.Phone;
 
-
             await _vendorRepository.UpdateAsync(vendor);
         }
-
-        // AC‑VP‑04
+        
         public async System.Threading.Tasks.Task SetStatusAsync(int vendorId, bool isActive)
         {
             var vendor = await _vendorRepository.GetByIdAsync(vendorId);
@@ -98,7 +93,6 @@ namespace PharmaStock.Core.Services
             StatusId = (bool)v.StatusId,
             Email = v.Email,
             Phone = v.Phone,
-            
         };
     }
 }

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Vendor;
 using PharmaStock.Core.Interfaces.Service;
 
-
 namespace PharmaStock.Controllers.Vendor
 {
     [ApiController]

@@ -6,8 +6,6 @@ using PharmaStock.Controllers.Vendor;
 using PharmaStock.Core.DTO.Vendor;
 using PharmaStock.Models;
 
-
-
 namespace PharmaStock.Core.Interfaces.Service
 {
     public interface IVendorService

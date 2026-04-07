@@ -8,10 +8,8 @@ namespace PharmaStock.Core.DTO.Vendor
 {
     public class VendorDTO
     {
-      
         public int VendorId { get; set; }
 
-        
         [Required]
         public string Name { get; set; } = null!;
 
@@ -22,7 +20,6 @@ namespace PharmaStock.Core.DTO.Vendor
 
         public int? Rating { get; set; }
 
-       
         public bool StatusId { get; set; } = true;
 
         public string? Email { get; set; }
