@@ -68,8 +68,8 @@ namespace PharmaStock.Controllers.Item
                 });
             }
         }
-        [HttpGet("GetFiltereditems")]
-        public async Task<IActionResult> GetFiltered([FromQuery] ItemFilterDTO filter)
+        [HttpGet("Items")]
+        public async Task<IActionResult> GetFiltered([FromBody] ItemFilterDTO filter)
         {
             if (filter.PackSize.HasValue && filter.PackSize.Value <= 0)
             {
