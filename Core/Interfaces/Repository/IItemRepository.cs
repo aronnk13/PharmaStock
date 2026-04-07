@@ -7,11 +7,11 @@ using PharmaStock.Models;
 
 namespace PharmaStock.Core.Interfaces.Repository
 {
-    public interface IItemRepository : IGenericRepository<Item>
-    {
-        public Task<Item> GetItemByName(string itemName);
-    }
-}
+//     public interface IItemRepository : IGenericRepository<Item>
+//     {
+//         public Task<Item> GetItemByName(string itemName);
+//     }
+// }
 
 
     public interface IItemRepository
@@ -21,6 +21,7 @@ namespace PharmaStock.Core.Interfaces.Repository
         System.Threading.Tasks.Task UpdateAsync(Item item);
         Task<List<Item>> GetItemsFilteredAsync(ItemFilterDTO filter);
         Task<ItemDeletedResponseDTO> DeleteItem(int itemId);
+         public Task<Item> GetItemByName(string itemName);
     }
 
 }
