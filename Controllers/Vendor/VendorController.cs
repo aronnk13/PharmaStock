@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Vendor;
 using PharmaStock.Core.Interfaces.Service;
@@ -9,6 +10,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.Vendor
 {
     [ApiController]
+    [Authorize(Roles = "ProcurementOfficer")] // Restrict access to procurement officers
     [Route("api/vendor")]
     public class VendorController : ControllerBase
     {
