@@ -1,3 +1,4 @@
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Core.DTO.Item;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
@@ -69,9 +70,9 @@ namespace PharmaStock.Core.Services
                 Status = item.Status
             };
         }
-        public async Task<List<ItemDTO>> GetItemsAsync(int? drugId = null)
+        public async Task<List<ItemDTO>> GetItemsFilteredAsync(ItemFilterDTO filter)
         {
-            var items = await _itemRepository.GetItemsAsync(drugId);
+            var items = await _itemRepository.GetItemsFilteredAsync(filter);
 
             return items.Select(i => new ItemDTO
             {

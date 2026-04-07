@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Models;
 
 namespace PharmaStock.Core.Interfaces.Repository
@@ -13,7 +14,7 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<Item?> GetByIdAsync(int itemId);
         System.Threading.Tasks.Task AddAsync(Item item);
         System.Threading.Tasks.Task UpdateAsync(Item item);
-        Task<List<Item>> GetItemsAsync(int? drugId = null);
+        Task<List<Item>> GetItemsFilteredAsync(ItemFilterDTO filter);
     }
 
 }

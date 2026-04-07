@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Models;
 
@@ -30,13 +31,18 @@ namespace PharmaStock.Infrastructure.Repositories
             _context.Items.Update(item);
             await _context.SaveChangesAsync();
         }
-        public async Task<List<Item>> GetItemsAsync(int? drugId = null)
+        public async Task<List<Item>> GetItemsFilteredAsync(ItemFilterDTO filter)
         {
             var query = _context.Items.AsQueryable();
 
-            if (drugId.HasValue)
+            if (filter.PackSize.HasValue)
             {
-                query = query.Where(i => i.DrugId == drugId.Value);
+                query = query.Where(i => i.PackSize == filter.PackSize.Value);
+            }
+
+            if (filter.IsActive.HasValue)
+            {
+                query = query.Where(i => i.Status == filter.IsActive.Value);
             }
 
             return await query.ToListAsync();

@@ -1,3 +1,4 @@
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Core.DTO.Item;
 using System.Threading.Tasks;
 
@@ -10,6 +11,6 @@ namespace PharmaStock.Core.Interfaces.Service
         Task UpdateAsync(int itemId, ItemDTO itemDTO);
 
         Task<ItemDTO?> GetByIdAsync(int itemId);
-        Task<List<ItemDTO>> GetItemsAsync(int? drugId = null);
+        Task<List<ItemDTO>> GetItemsFilteredAsync(ItemFilterDTO filter);
     }
 }

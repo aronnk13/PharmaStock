@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using pharmaStock.Core.DTO.Item;
 using PharmaStock.Core.DTO.Item;
 using PharmaStock.Core.Interfaces.Service;
 
@@ -68,9 +69,9 @@ namespace PharmaStock.Controllers.Item
             }
         }
         [HttpGet("list")]
-        public async Task<IActionResult> GetItems([FromQuery] int? drugId)
+        public async Task<IActionResult> GetFiltered([FromQuery] ItemFilterDTO filter)
         {
-            var items = await _itemService.GetItemsAsync(drugId);
+            var items = await _itemService.GetItemsFilteredAsync(filter);
             return Ok(items);
         }
     }
