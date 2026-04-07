@@ -74,5 +74,23 @@ namespace PharmaStock.Controllers.Item
             var items = await _itemService.GetItemsFilteredAsync(filter);
             return Ok(items);
         }
+        [HttpDelete]
+        [Route("DeleteItem/{itemId}")]
+        public async Task<IActionResult> Delete(int itemId)
+        {
+            if (itemId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Invalid itemId. Must be greater than zero." });
+            }
+
+            var response = await _itemService.DeleteAsync(itemId);
+
+            if (response.IsDeleted)
+            {
+                return Ok(new { success = true, message = response.Message });
+            }
+
+            return BadRequest(new { success = false, message = response.Message });
+        }
     }
 }
