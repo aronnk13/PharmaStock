@@ -11,12 +11,19 @@ using PharmaStock.Models;
 
 namespace PharmaStock.Infrastructure.Repositories
 {
-    public class DrugRepository(PharmaStockContext context) : GenericRepository<Drug>(context), IDrugRepository
+    public class DrugRepository : GenericRepository<Drug>, IDrugRepository
     {
-        
-        public async Task<(List<Drug>,int)> GetDrugsByFilterAsync(DrugFilterDTO filter)
+        private readonly PharmaStockContext _pStockContext;
+
+        public DrugRepository(PharmaStockContext pharmaStockContext)
+            : base(pharmaStockContext)
         {
-            var result = context.Drugs.AsQueryable();
+            _pStockContext = pharmaStockContext;
+        }
+
+        public async Task<(List<Drug>, int)> GetDrugsByFilterAsync(DrugFilterDTO filter)
+        {
+            var result = _pStockContext.Drugs.AsQueryable();
             if (filter.GenericName != null)
             {
                 result = result.Where(q => q.GenericName.Contains(filter.GenericName));
@@ -36,18 +43,28 @@ namespace PharmaStock.Infrastructure.Repositories
 
             var totalCount = await result.CountAsync();
 
-            var drugs = await result.Skip((filter.Page-1)*filter.PageSize)
+            var drugs = await result.Skip((filter.Page - 1) * filter.PageSize)
                                     .Take(filter.PageSize)
                                     .ToListAsync();
-            
+
             return (drugs, totalCount);
         }
-         public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
+
+        public async Task<bool> IsDrugExists(string name, string strength, int form, int? excludeId = null)
+        {
+            return await _pStockContext.Drugs.AnyAsync(d =>
+                d.GenericName == name &&
+                d.Strength == strength &&
+                d.Form == form &&
+                // If excludeId has a value, skip that record (essential for Updates)
+                (!excludeId.HasValue || d.DrugId != excludeId.Value));
+        }
+        public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
         {
             try
             {
                 // 1. Check for drug availability
-                var drug = await context.Drugs.FindAsync(DrugId);
+                var drug = await _pStockContext.Drugs.FindAsync(DrugId);
 
                 if (drug == null)
                 {
@@ -60,9 +77,9 @@ namespace PharmaStock.Infrastructure.Repositories
 
                 // 2. Change status
                 drug.Status = false;
-                context.Drugs.Update(drug);
+                _pStockContext.Drugs.Update(drug);
 
-                var rowsAffected = await context.SaveChangesAsync();
+                var rowsAffected = await _pStockContext.SaveChangesAsync();
 
                 if (rowsAffected > 0)
                 {
