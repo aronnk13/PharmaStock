@@ -47,7 +47,7 @@ namespace PharmaStock.Controllers.Item
 
 
         [HttpPut("update/{itemId}")]
-        public async Task<IActionResult> Update(int itemId,[FromBody] ItemDTO itemDTO)
+        public async Task<IActionResult> Update(int itemId, [FromBody] ItemDTO itemDTO)
         {
             try
             {
@@ -68,9 +68,24 @@ namespace PharmaStock.Controllers.Item
                 });
             }
         }
-        [HttpGet("list")]
+        [HttpGet("items/filter")]
         public async Task<IActionResult> GetFiltered([FromQuery] ItemFilterDTO filter)
         {
+            if (filter.PackSize.HasValue && filter.PackSize.Value <= 0)
+            {
+                return BadRequest(new { success = false, message = "PackSize must be greater than zero." });
+            }
+
+            if (filter.PackSize.HasValue && filter.PackSize.Value > 1000)
+            {
+                return BadRequest(new { success = false, message = "PackSize cannot exceed 1000 units." });
+            }
+
+            if (filter.IsActive != null && !(filter.IsActive == true || filter.IsActive == false))
+            {
+                return BadRequest(new { success = false, message = "IsActive must be true or false." });
+            }
+
             var items = await _itemService.GetItemsFilteredAsync(filter);
             return Ok(items);
         }
