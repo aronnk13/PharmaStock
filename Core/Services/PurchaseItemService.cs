@@ -16,10 +16,12 @@ namespace PharmaStock.Core.Services
     {
         private readonly IPurchaseItemRepository pirepo;
         private readonly IAuditLogService auditLogService;
-        public PurchaseItemService(IPurchaseItemRepository _pirepo, IAuditLogService _auditLogService)
+        private readonly IHttpContextAccessor httpContextAccessor;
+        public PurchaseItemService(IPurchaseItemRepository _pirepo, IAuditLogService _auditLogService, IHttpContextAccessor _httpContextAccessor)
         {
             pirepo = _pirepo;
             auditLogService = _auditLogService;
+            httpContextAccessor = _httpContextAccessor;
         }
         public async Task<PurchaseItemResponseDTO> AddPIAsync(CreatePurchaseItemDTO dto)
         {
@@ -75,9 +77,12 @@ namespace PharmaStock.Core.Services
                 throw new Exception("POItem cannot be deleted after receipt");
             }
             await pirepo.DeleteAsync(id);
+            var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst("userId")?.Value;
+            int userId = userIdClaim != null ? int.Parse(userIdClaim) : 0;
+
             await auditLogService.CreateLogAsync(new AuditDto
             {
-                UserId = 5, // Replace with actual user ID from context
+                UserId = userId,
                 Action = "DELETED",
                 Resource = "PurchaseItem",
                 Metadata = $"PurchaseItemId: {id}"

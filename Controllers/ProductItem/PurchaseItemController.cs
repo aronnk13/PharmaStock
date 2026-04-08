@@ -20,7 +20,7 @@ namespace PharmaStock.Controllers.ProductItem
             service = _service;
         }
         [HttpPost]
-        [Route("createPI")]
+        [Route("create")]
         public async Task<IActionResult> CreatePurchaseItem(CreatePurchaseItemDTO dto)
         {
             try
@@ -35,7 +35,7 @@ namespace PharmaStock.Controllers.ProductItem
         }
 
         [HttpPut]
-        [Route("updatePI/{id}")]
+        [Route("{id}")]
         public async Task<IActionResult> UpdatePurchaseItem(int id, UpdatePurchaseItemDTO dto)
         {
             try
@@ -50,7 +50,7 @@ namespace PharmaStock.Controllers.ProductItem
         }
 
         [HttpDelete]
-        [Route("deletePI/{id}")]
+        [Route("{id}")]
         public async Task<IActionResult> DeletePurchaseItem(int id)
         {
             try
