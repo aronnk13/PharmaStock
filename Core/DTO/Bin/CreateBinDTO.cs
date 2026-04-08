@@ -15,9 +15,7 @@ namespace PharmaStock.Core.DTO.Bin
         public int BinStorageClassId { get; set; }
 
         [Required]
-        public bool IsQuarantine { get; set; }
-
-        
+        public bool IsQuarantine { get; set; } 
         public int MaxCapacity { get; set; }
     }
 }
