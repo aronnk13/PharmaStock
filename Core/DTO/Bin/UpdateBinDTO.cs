@@ -11,8 +11,6 @@ namespace PharmaStock.Core.DTO.Bin
         public bool? IsActive { get; set; }
 
         public int? MaxCapacity { get; set; }
-        public bool? IsQuarantine { get; set; }
-        public int? MaxCapacity { get; set; }
-        public bool? IsActive { get; set; }
+       
     }
 }
