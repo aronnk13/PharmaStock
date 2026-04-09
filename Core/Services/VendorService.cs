@@ -51,7 +51,9 @@ namespace PharmaStock.Core.Services
 
             var filtered = vendors.Where(v =>
                 (includeInactive || v.StatusId == true) &&
-                (string.IsNullOrEmpty(name) || v.Name.Contains(name)));
+                (string.IsNullOrEmpty(name) ||
+                 v.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+            );
 
             return filtered.Select(Map);
         }
@@ -70,7 +72,7 @@ namespace PharmaStock.Core.Services
             await _vendorRepository.UpdateAsync(vendor);
         }
 
-        
+
         public async System.Threading.Tasks.Task DeleteAsync(int vendorId)
         {
             var vendor = await _vendorRepository.GetByIdAsync(vendorId);
