@@ -33,7 +33,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -84,7 +84,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IDrugRepository, DrugRepository>();
-
 builder.Services.AddScoped<IDrugService, DrugService>();
 builder.Services.AddScoped<IPurchaseItemRepository, PurchaseItemRepository>();
 builder.Services.AddScoped<IPurchaseItemService, PurchaseItemService>();
@@ -93,6 +92,12 @@ builder.Services.AddScoped<IItemRepository, ItemRepository>();
 
 builder.Services.AddScoped<IBinRepository, BinRepository>();
 builder.Services.AddScoped<IBinService, BinService>();
+
+builder.Services.AddScoped<IReplenishmentRequestRepository, ReplenishmentRequestRepository>();
+builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
+
+builder.Services.AddScoped<IReplenishmentRuleRepository, ReplenishmentRuleRepository>();
+builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
 
 
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();

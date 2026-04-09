@@ -15,6 +15,11 @@ namespace PharmaStock.Infrastructure.Repositories
         {
             _context = context;
         }
+        
+         public async Task<Item> GetItemByName(string itemName)
+        {
+            return await _context.Items.FirstOrDefaultAsync(l => l.Drug.GenericName == itemName);
+        }
 
         public async Task<Item?> GetByIdAsync(int itemId)
         {
