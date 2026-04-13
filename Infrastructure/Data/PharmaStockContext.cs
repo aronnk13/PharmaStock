@@ -116,10 +116,14 @@ public partial class PharmaStockContext : DbContext
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
     public virtual DbSet<Vendor> Vendors { get; set; }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=LTIN718770\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
+        => optionsBuilder.UseSqlServer("Server=LTIN718562\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
+
+    //  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //     => optionsBuilder.UseSqlServer("PharmaDbConnection");
+
+    // ToDo: Protect the connection string.
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -166,11 +170,6 @@ public partial class PharmaStockContext : DbContext
                 .HasForeignKey(d => d.BinStorageClass)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Bin_Storage");
-
-            entity.HasOne(d => d.Location).WithMany(p => p.Bins)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Bin_Location");
         });
 
         modelBuilder.Entity<BinStorageClass>(entity =>
@@ -254,10 +253,6 @@ public partial class PharmaStockContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Disp_Item");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.DispenseRefs)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Disp_Loc");
         });
 
         modelBuilder.Entity<Drug>(entity =>
@@ -433,10 +428,6 @@ public partial class PharmaStockContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Bal_Item");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.InventoryBalances)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Bal_Location");
         });
 
         modelBuilder.Entity<InventoryLot>(entity =>
@@ -538,14 +529,7 @@ public partial class PharmaStockContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("StatusID");
 
-            entity.HasOne(d => d.LocationType).WithMany(p => p.Locations)
-                .HasForeignKey(d => d.LocationTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Location_Type");
 
-            entity.HasOne(d => d.ParentLocation).WithMany(p => p.InverseParentLocation)
-                .HasForeignKey(d => d.ParentLocationId)
-                .HasConstraintName("FK_Location_Parent");
         });
 
         modelBuilder.Entity<LocationType>(entity =>
@@ -659,10 +643,6 @@ public partial class PharmaStockContext : DbContext
             entity.Property(e => e.PurchaseOrderStatusId).HasColumnName("PurchaseOrderStatusID");
             entity.Property(e => e.VendorId).HasColumnName("VendorID");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.PurchaseOrders)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PO_Location");
 
             entity.HasOne(d => d.PurchaseOrderStatus).WithMany(p => p.PurchaseOrders)
                 .HasForeignKey(d => d.PurchaseOrderStatusId)
@@ -792,10 +772,6 @@ public partial class PharmaStockContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RReq_Item");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.ReplenishmentRequests)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_RReq_Loc");
 
             entity.HasOne(d => d.Rule).WithMany(p => p.ReplenishmentRequests)
                 .HasForeignKey(d => d.RuleId)
@@ -824,10 +800,6 @@ public partial class PharmaStockContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Repl_Item");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.ReplenishmentRules)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Repl_Loc");
         });
 
         modelBuilder.Entity<ReplenishmentStatus>(entity =>
@@ -887,10 +859,6 @@ public partial class PharmaStockContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SAdj_Item");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.StockAdjustments)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SAdj_Loc");
 
             entity.HasOne(d => d.ReasonCodeNavigation).WithMany(p => p.StockAdjustments)
                 .HasForeignKey(d => d.ReasonCode)
@@ -912,10 +880,7 @@ public partial class PharmaStockContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SCount_Cycle");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.StockCounts)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SCount_Loc");
+
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.StockCounts)
                 .HasForeignKey(d => d.Status)
@@ -1009,10 +974,6 @@ public partial class PharmaStockContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ST_Item");
 
-            entity.HasOne(d => d.Location).WithMany(p => p.StockTransitions)
-                .HasForeignKey(d => d.LocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ST_Loc");
 
             entity.HasOne(d => d.PerformedByNavigation).WithMany(p => p.StockTransitions)
                 .HasForeignKey(d => d.PerformedBy)
@@ -1100,20 +1061,36 @@ public partial class PharmaStockContext : DbContext
             entity.Property(e => e.FromLocationId).HasColumnName("FromLocationID");
             entity.Property(e => e.ToLocationId).HasColumnName("ToLocationID");
 
-            entity.HasOne(d => d.FromLocation).WithMany(p => p.TransferOrderFromLocations)
-                .HasForeignKey(d => d.FromLocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TO_FromLoc");
+
+            // ✅ FROM Location relationship
+            entity.HasOne(d => d.FromLocation)
+                  .WithMany(p => p.TransferOrderFromLocations)
+                  .HasForeignKey(d => d.FromLocationId)
+                  .OnDelete(DeleteBehavior.Restrict)
+                  .HasConstraintName("FK_TO_FromLocation");
+
+
+            // ✅ TO Location relationship
+            entity.HasOne(d => d.ToLocation)
+                  .WithMany(p => p.TransferOrderToLocations)
+                  .HasForeignKey(d => d.ToLocationId)
+                  .OnDelete(DeleteBehavior.Restrict)
+                  .HasConstraintName("FK_TO_ToLocation");
+
+            // ✅ Status relationship (already correct)
+            entity.HasOne(d => d.StatusNavigation)
+                  .WithMany(p => p.TransferOrders)
+                  .HasForeignKey(d => d.Status)
+                  .OnDelete(DeleteBehavior.ClientSetNull)
+                  .HasConstraintName("FK_TO_Status");
+
+
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.TransferOrders)
                 .HasForeignKey(d => d.Status)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TO_Status");
 
-            entity.HasOne(d => d.ToLocation).WithMany(p => p.TransferOrderToLocations)
-                .HasForeignKey(d => d.ToLocationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TO_ToLoc");
         });
 
         modelBuilder.Entity<TransferOrderStatus>(entity =>

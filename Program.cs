@@ -1,21 +1,21 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using PharmaStock.Core.Interfaces;
-using PharmaStock.Infrastructure.Services;
+using PharmaStock.Core.Interfaces.Repository;
+using PharmaStock.Core.Interfaces.Service;
+using PharmaStock.Core.Services;
+using PharmaStock.Core.Validators;
 using PharmaStock.Infrastructure.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using FluentValidation;
 using PharmaStock.Core.Validators.Auth;
-using FluentValidation.AspNetCore;
-using PharmaStock.Core.Interfaces;
-using PharmaStock.Core.Services;
-using PharmaStock.Infrastructure.Repositories;
-using PharmaStock.Core.Interfaces.Repository;
+using PharmaStock.Core.Validators.Location;
+using PharmaStock.Infrastructure.Services;
+using PharmaStock.Models;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +26,7 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginDTOValidator>();
 
 // JWT Token Registration
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"); 
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 
 builder.Services.AddAuthentication(options =>
@@ -48,31 +48,71 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<UpsertUserValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateLocationValidator>();
 
-builder.Services.AddScoped(typeof(PharmaStock.Core.Interfaces.IGenericRepository<>), typeof(PharmaStock.Infrastructure.Repositories.GenericRepository<>)); 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+    });
+});
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 //if not typeof, you would have to specify the type of repository you want to use, but with typeof, you can use any repository you want by just passing the type of it as T.
 
-builder.Services.AddScoped<IDrugRepository, DrugRepositoy>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddScoped<IDrugRepository, DrugRepository>();
 
 builder.Services.AddScoped<IDrugService, DrugService>();
+
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
 builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
-builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
+builder.Services.AddDbContext<PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
 );
 
 var app = builder.Build();
 
 // 3. Configure the HTTP request pipeline
-// if (app.Environment.IsDevelopment())
-// {
+if (app.Environment.IsDevelopment())
+{
+
     app.UseSwagger();
     app.UseSwaggerUI();
-// }
+}
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
