@@ -5,9 +5,21 @@ namespace PharmaStock.Core.Interfaces.Service
     public interface IInventoryLotService
     {
         Task<InventoryLotDTO> CreateAsync(InventoryLotDTO dto);
+
         Task<InventoryLotDTO?> GetByIdAsync(int id);
-        Task<IEnumerable<InventoryLotDTO>> GetAllAsync();
+
+        
+
+      
+        Task<IEnumerable<InventoryLotDTO>> SearchAsync(
+            int? itemId,
+            int? batchNumber,
+            int? status,
+            DateOnly? expiryBefore,
+            DateOnly? expiryAfter);
+
         Task UpdateAsync(int id, InventoryLotDTO dto);
+
         Task DeleteAsync(int id);
     }
 }

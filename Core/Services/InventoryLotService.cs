@@ -37,11 +37,37 @@ namespace PharmaStock.Core.Services
             return lot == null ? null : Map(lot);
         }
 
-        public async Task<IEnumerable<InventoryLotDTO>> GetAllAsync()
+        
+
+        public async Task<IEnumerable<InventoryLotDTO>> SearchAsync(
+        int? itemId,
+        int? batchNumber,
+        int? status,
+        DateOnly? expiryBefore,
+        DateOnly? expiryAfter)
         {
             var lots = await _repository.GetAllAsync();
-            return lots.Select(Map);
+
+            var query = lots.AsQueryable();
+
+            if (itemId.HasValue)
+                query = query.Where(l => l.ItemId == itemId.Value);
+
+            if (batchNumber.HasValue)
+                query = query.Where(l => l.BatchNumber == batchNumber.Value);
+
+            if (status.HasValue)
+                query = query.Where(l => l.Status == status.Value);
+
+            if (expiryBefore.HasValue)
+                query = query.Where(l => l.ExpiryDate < expiryBefore.Value);
+
+            if (expiryAfter.HasValue)
+                query = query.Where(l => l.ExpiryDate > expiryAfter.Value);
+
+            return query.Select(Map);
         }
+
 
         public async System.Threading.Tasks.Task UpdateAsync(int id, InventoryLotDTO dto)
         {

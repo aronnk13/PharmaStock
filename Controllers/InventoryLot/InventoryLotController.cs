@@ -30,11 +30,25 @@ namespace PharmaStock.Controllers.InventoryLot
             return lot == null ? NotFound() : Ok(lot);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(
+        [FromQuery] int? itemId,
+        [FromQuery] int? batchNumber,
+        [FromQuery] int? status,
+        [FromQuery] DateOnly? expiryBefore,
+        [FromQuery] DateOnly? expiryAfter)
         {
-            return Ok(await _service.GetAllAsync());
+            var result = await _service.SearchAsync(
+                itemId,
+                batchNumber,
+                status,
+                expiryBefore,
+                expiryAfter);
+
+            return Ok(result);
         }
+
 
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(int id, InventoryLotDTO dto)
