@@ -5,6 +5,9 @@ namespace PharmaStock.Core.DTO.GRNItem
     public class CreateGRNItemDTO
     {
         [Required]
+        public int GoodsReceiptId { get; set; }
+
+        [Required]
         public int PurchaseOrderItemId { get; set; }
 
         [Required]

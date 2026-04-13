@@ -5,6 +5,12 @@ namespace PharmaStock.Core.DTO.GRNItem
     public class UpdateGRNItemDTO
     {
         [Required]
+        public int GoodsReceiptId { get; set; }
+
+        [Required]
+        public int GoodsReceiptItemId { get; set; }
+
+        [Required]
         public int BatchNumber { get; set; }
 
         [Required]
