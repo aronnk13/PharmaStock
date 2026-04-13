@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.ComponentModel.DataAnnotations.Schema;
 namespace PharmaStock.Models;
 
 public partial class Audit
@@ -9,7 +9,7 @@ public partial class Audit
 
     public int UserId { get; set; }
 
-    public bool Action { get; set; }
+    public string Action { get; set; } = null!;
 
     public string Resource { get; set; } = null!;
 
@@ -18,4 +18,6 @@ public partial class Audit
     public string? Metadata { get; set; }
 
     public virtual User User { get; set; } = null!;
+    [NotMapped]
+    public object? EventTimestamp { get; internal set; }
 }

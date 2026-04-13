@@ -6,27 +6,25 @@ namespace PharmaStock.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        PharmaStockContext _context; //represents the whole db.
-        DbSet<T> _dbset; //represents a table, whichever we're passing as T.
-        public GenericRepository(PharmaStockContext context)
+       protected readonly PharmaStockContext _pharmaStockContext; 
+       private readonly DbSet<T> _dbset;
+        public GenericRepository(PharmaStockContext _pharmaStockContext)
         {
-            this._context = context;
-            this._dbset = _context.Set<T>();
+            this._pharmaStockContext = _pharmaStockContext;
+            this._dbset = _pharmaStockContext.Set<T>();
         }
-
-        public async Task AddAsync(T obj)
+        public async System.Threading.Tasks.Task AddAsync(T obj)
         {
             await _dbset.AddAsync(obj);
-            await _context.SaveChangesAsync();
+            await _pharmaStockContext.SaveChangesAsync();
         }
-
-        public async Task DeleteAsync(int id)
+        public async System.Threading.Tasks.Task DeleteAsync(int id)
         {
             var entity = await _dbset.FindAsync(id);
-            if(entity != null)
+            if (entity != null)
             {
                 _dbset.Remove(entity);
-                await _context.SaveChangesAsync();
+                await _pharmaStockContext.SaveChangesAsync();
             }
         }
 
@@ -38,7 +36,7 @@ namespace PharmaStock.Infrastructure.Repositories
         public async Task<T> GetByIdAsync(int id)
         {
             T entity = await _dbset.FindAsync(id);
-            if(entity != null)
+            if (entity != null)
             {
                 return entity;
             }
@@ -48,7 +46,18 @@ namespace PharmaStock.Infrastructure.Repositories
         public void Update(T obj)
         {
             _dbset.Update(obj);
-            _context.SaveChanges();
+            _pharmaStockContext.SaveChanges();
         }
+        public async System.Threading.Tasks.Task<bool> UpdateAsync(T obj)
+        {
+            _pharmaStockContext.Set<T>().Update(obj);
+            return await _pharmaStockContext.SaveChangesAsync() > 0;
+        }
+        public async System.Threading.Tasks.Task Add(T obj)
+        {
+            await _pharmaStockContext.Set<T>().AddAsync(obj);
+            await _pharmaStockContext.SaveChangesAsync();
+        }
+
     }
 }

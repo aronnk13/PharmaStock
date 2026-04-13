@@ -53,7 +53,7 @@ namespace PharmaStock.Core.Services
                 {
                     User? existingUser = await _userRepository.GetByIdAsync(upsertUserDTO.UserId);
                     if (existingUser == null)
-                    {
+                    { 
                         return new UpsertResponse { IsSuccess = false, Message = $"User with ID {upsertUserDTO.UserId} not found!" };
                     }
 

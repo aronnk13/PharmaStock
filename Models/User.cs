@@ -29,5 +29,11 @@ public partial class User
 
     public virtual ICollection<Audit> Audits { get; set; } = new List<Audit>();
 
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
     public virtual UserRole Role { get; set; } = null!;
+
+    public virtual ICollection<StockAdjustment> StockAdjustments { get; set; } = new List<StockAdjustment>();
+
+    public virtual ICollection<StockTransition> StockTransitions { get; set; } = new List<StockTransition>();
 }
