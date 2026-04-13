@@ -71,16 +71,13 @@ namespace PharmaStock.Controllers.Drug
             {
                 return BadRequest(new { message = "Request body is required." });
             }
-            if (DrugId <= 0 || request.DrugId <= 0)
+            if (DrugId <= 0 )
             {
                 return BadRequest(new { message = "DrugId must be greater than 0." });
             }
-            if (DrugId != request.DrugId)
-                return BadRequest(new { message = "ID Mismatch" });
-
             try
             {
-                var success = await _drugService.UpdateDrug(request);
+                var success = await _drugService.UpdateDrug(DrugId,request);
                 if (!success) return NotFound();
 
                 return Ok(new { message = "Drug updated successfully" });
