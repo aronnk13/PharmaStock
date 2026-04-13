@@ -27,8 +27,5 @@ namespace PharmaStock.Core.DTO.GRNItem
 
         [MaxLength(250)]
         public string? Reason { get; set; }
-
-        [MaxLength(250)]
-        public string? ChangeReason { get; set; }
     }
 }

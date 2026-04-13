@@ -4,8 +4,8 @@ namespace PharmaStock.Core.Interfaces.Service
 {
     public interface IGRNItemService
     {
-        Task<GRNItemResponseDTO> CreateAsync(CreateGRNItemDTO dto);
-        Task<object> GetAsync(GRNItemFilterDTO filter);
-        Task<GRNItemResponseDTO> UpdateAsync(UpdateGRNItemDTO dto);
+        System.Threading.Tasks.Task<GRNItemResponseDTO> CreateAsync(CreateGRNItemDTO dto);
+        System.Threading.Tasks.Task<GRNItemsPagedResponseDTO> GetAsync(GRNItemFilterDTO filter);
+        System.Threading.Tasks.Task UpdateAsync(UpdateGRNItemDTO dto);
     }
 }

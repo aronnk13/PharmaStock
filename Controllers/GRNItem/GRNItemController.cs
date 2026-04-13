@@ -45,11 +45,11 @@ namespace PharmaStock.Controllers.GRNItem
         }
 
         [HttpGet("GetGRNItems")]
-        public async Task<IActionResult> Get([FromQuery] GRNItemFilterDTO filter)
+        public async Task<IActionResult> Get([FromQuery] GRNItemFilterDTO? filter)
         {
             try
             {
-                var result = await _service.GetAsync(filter);
+                var result = await _service.GetAsync(filter ?? new GRNItemFilterDTO());
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)
@@ -68,8 +68,8 @@ namespace PharmaStock.Controllers.GRNItem
         {
             try
             {
-                var result = await _service.UpdateAsync(dto);
-                return Ok(result);
+                await _service.UpdateAsync(dto);
+                return Ok(new { message = "GRNItem updated successfully." });
             }
             catch (KeyNotFoundException ex)
             {

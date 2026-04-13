@@ -18,8 +18,6 @@ namespace PharmaStock.Infrastructure.Repositories
         {
             return await _context.GoodsReciepts
                 .Include(g => g.StatusNavigation)
-                .Include(g => g.PurchaseOrder)
-                    .ThenInclude(po => po.PurchaseOrderStatus)
                 .FirstOrDefaultAsync(g => g.GoodsRecieptId == goodsReceiptId);
         }
 
@@ -42,44 +40,27 @@ namespace PharmaStock.Infrastructure.Repositories
         public async Task<GoodsReceiptItem?> GetItemWithDetailsAsync(int goodsReceiptItemId)
         {
             return await _context.GoodsReceiptItems
-                .Include(i => i.Item)
-                    .ThenInclude(item => item.Drug)
-                        .ThenInclude(d => d.ControlClassNavigation)
-                .Include(i => i.Item)
-                    .ThenInclude(item => item.Drug)
-                        .ThenInclude(d => d.StorageClassNavigation)
                 .Include(i => i.GoodsReceipt)
-                    .ThenInclude(gr => gr.StatusNavigation)
-                .Include(i => i.PurchaseOrderItem)
                 .FirstOrDefaultAsync(i => i.GoodsReceiptItemId == goodsReceiptItemId);
         }
 
-        public async Task<(List<GRNItemListDTO>, int)> GetFilteredItemsAsync(int goodsReceiptId, GRNItemFilterDTO filter)
+        public async Task<(List<GRNItemResponseDTO>, int)> GetFilteredItemsAsync(GRNItemFilterDTO filter)
         {
-            var query = _context.GoodsReceiptItems
-                .Include(i => i.Item)
-                    .ThenInclude(item => item.Drug)
-                        .ThenInclude(d => d.ControlClassNavigation)
-                .Where(i => i.GoodsReceiptId == goodsReceiptId)
-                .AsQueryable();
-
-            if (filter.ItemId.HasValue)
-                query = query.Where(i => i.ItemId == filter.ItemId.Value);
+            var query = _context.GoodsReceiptItems.AsQueryable();
 
             if (filter.BatchNumber.HasValue)
                 query = query.Where(i => i.BatchNumber == filter.BatchNumber.Value);
+
+            if (filter.ExpiryDate.HasValue)
+                query = query.Where(i => i.ExpiryDate == filter.ExpiryDate.Value);
 
             var totalCount = await query.CountAsync();
 
             var items = await query
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .Select(i => new GRNItemListDTO
+                .Select(i => new GRNItemResponseDTO
                 {
-                    GoodsReceiptItemId = i.GoodsReceiptItemId,
-                    ItemId = i.ItemId,
-                    DrugName = i.Item.Drug.GenericName,
-                    ControlClass = i.Item.Drug.ControlClassNavigation.Class,
                     BatchNumber = i.BatchNumber,
                     ExpiryDate = i.ExpiryDate,
                     ReceivedQty = i.ReceivedQty,
@@ -92,26 +73,12 @@ namespace PharmaStock.Infrastructure.Repositories
             return (items, totalCount);
         }
 
-        public async Task<bool> IsDuplicateBatchAsync(int goodsReceiptId, int itemId, int batchNumber, int? excludeId = null)
+        public async Task<bool> IsDuplicateBatchAsync(int goodsReceiptId, int itemId, int batchNumber)
         {
             return await _context.GoodsReceiptItems.AnyAsync(i =>
                 i.GoodsReceiptId == goodsReceiptId &&
                 i.ItemId == itemId &&
-                i.BatchNumber == batchNumber &&
-                (!excludeId.HasValue || i.GoodsReceiptItemId != excludeId.Value));
+                i.BatchNumber == batchNumber);
         }
-
-        public async Task<int> CountActiveItemsInGrnAsync(int goodsReceiptId)
-        {
-            return await _context.GoodsReceiptItems
-                .CountAsync(i => i.GoodsReceiptId == goodsReceiptId);
-        }
-
-        public async Task<bool> HasActiveTaskAsync(int goodsReceiptItemId)
-        {
-            return await _context.Tasks
-                .AnyAsync(t => t.GoodsReceiptItemId == goodsReceiptItemId && t.Status == false);
-        }
-
     }
 }

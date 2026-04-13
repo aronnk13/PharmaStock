@@ -12,7 +12,7 @@ namespace PharmaStock.Core.DTO.GRNItem
 
         [Required]
         public int ItemId { get; set; }
-
+        
         [Required]
         public int BatchNumber { get; set; }
 

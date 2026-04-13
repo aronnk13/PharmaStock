@@ -2,6 +2,7 @@ using PharmaStock.Core.DTO.GRNItem;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
+using SystemTask = System.Threading.Tasks.Task;
 
 namespace PharmaStock.Core.Services
 {
@@ -22,11 +23,14 @@ namespace PharmaStock.Core.Services
             if (grn.Status != 1)
                 throw new InvalidOperationException("GRN not Open");
 
-            var item = await _repository.GetItemByIdAsync(dto.ItemId)
-                ?? throw new KeyNotFoundException("Item not found");
-
             var poItem = await _repository.GetPurchaseItemByIdAsync(dto.PurchaseOrderItemId)
                 ?? throw new KeyNotFoundException("PurchaseItem not found");
+
+            var item = await _repository.GetItemByIdAsync(poItem.ItemId)
+                ?? throw new KeyNotFoundException("Item not found");
+
+            if (await _repository.IsDuplicateBatchAsync(dto.GoodsReceiptId, poItem.ItemId, dto.BatchNumber))
+                throw new InvalidOperationException("Duplicate batch");
 
             bool overShipmentFlag = dto.ReceivedQty > poItem.OrderedQty;
 
@@ -34,7 +38,7 @@ namespace PharmaStock.Core.Services
             {
                 GoodsReceiptId = dto.GoodsReceiptId,
                 PurchaseOrderItemId = dto.PurchaseOrderItemId,
-                ItemId = dto.ItemId,
+                ItemId = poItem.ItemId,
                 BatchNumber = dto.BatchNumber,
                 ExpiryDate = dto.ExpiryDate,
                 ReceivedQty = dto.ReceivedQty,
@@ -47,14 +51,6 @@ namespace PharmaStock.Core.Services
 
             return new GRNItemResponseDTO
             {
-                GoodsReceiptItemId = entity.GoodsReceiptItemId,
-                GoodsReceiptId = entity.GoodsReceiptId,
-                PurchaseOrderItemId = entity.PurchaseOrderItemId,
-                ItemId = entity.ItemId,
-                DrugName = item.Drug.GenericName,
-                BrandName = item.Drug.BrandName,
-                ControlClass = item.Drug.ControlClassNavigation.Class,
-                StorageClass = item.Drug.StorageClassNavigation.Class,
                 BatchNumber = entity.BatchNumber,
                 ExpiryDate = entity.ExpiryDate,
                 ReceivedQty = entity.ReceivedQty,
@@ -65,44 +61,12 @@ namespace PharmaStock.Core.Services
             };
         }
 
-        public async Task<object> GetAsync(GRNItemFilterDTO filter)
+        public async Task<GRNItemsPagedResponseDTO> GetAsync(GRNItemFilterDTO filter)
         {
-            if (filter.GoodsReceiptItemId.HasValue)
-            {
-                var entity = await _repository.GetItemWithDetailsAsync(filter.GoodsReceiptItemId.Value)
-                    ?? throw new KeyNotFoundException("GRNItem not found");
-
-                if (entity.GoodsReceiptId != filter.GoodsReceiptId)
-                    throw new KeyNotFoundException("GRNItem not found");
-
-                return new GRNItemResponseDTO
-                {
-                    GoodsReceiptItemId = entity.GoodsReceiptItemId,
-                    GoodsReceiptId = entity.GoodsReceiptId,
-                    PurchaseOrderItemId = entity.PurchaseOrderItemId,
-                    ItemId = entity.ItemId,
-                    DrugName = entity.Item.Drug.GenericName,
-                    BrandName = entity.Item.Drug.BrandName,
-                    ControlClass = entity.Item.Drug.ControlClassNavigation.Class,
-                    StorageClass = entity.Item.Drug.StorageClassNavigation.Class,
-                    BatchNumber = entity.BatchNumber,
-                    ExpiryDate = entity.ExpiryDate,
-                    ReceivedQty = entity.ReceivedQty,
-                    AcceptedQty = entity.AcceptedQty,
-                    RejectedQty = entity.RejectedQty,
-                    Reason = entity.Reason
-                };
-            }
-
-            var grn = await _repository.GetGoodsReceiptWithDetailsAsync(filter.GoodsReceiptId)
-                ?? throw new KeyNotFoundException("GRN not found");
-
-            var (items, totalCount) = await _repository.GetFilteredItemsAsync(filter.GoodsReceiptId, filter);
+            var (items, totalCount) = await _repository.GetFilteredItemsAsync(filter);
 
             return new GRNItemsPagedResponseDTO
             {
-                GoodsReceiptId = filter.GoodsReceiptId,
-                GrnStatus = grn.StatusNavigation.Status,
                 TotalItems = totalCount,
                 Items = items,
                 Page = filter.Page,
@@ -110,7 +74,7 @@ namespace PharmaStock.Core.Services
             };
         }
 
-        public async Task<GRNItemResponseDTO> UpdateAsync(UpdateGRNItemDTO dto)
+        public async SystemTask UpdateAsync(UpdateGRNItemDTO dto)
         {
             var entity = await _repository.GetItemWithDetailsAsync(dto.GoodsReceiptItemId)
                 ?? throw new KeyNotFoundException("GRNItem not found");
@@ -129,24 +93,6 @@ namespace PharmaStock.Core.Services
             entity.Reason = dto.Reason;
 
             await _repository.UpdateAsync(entity);
-
-            return new GRNItemResponseDTO
-            {
-                GoodsReceiptItemId = entity.GoodsReceiptItemId,
-                GoodsReceiptId = entity.GoodsReceiptId,
-                PurchaseOrderItemId = entity.PurchaseOrderItemId,
-                ItemId = entity.ItemId,
-                DrugName = entity.Item.Drug.GenericName,
-                BrandName = entity.Item.Drug.BrandName,
-                ControlClass = entity.Item.Drug.ControlClassNavigation.Class,
-                StorageClass = entity.Item.Drug.StorageClassNavigation.Class,
-                BatchNumber = entity.BatchNumber,
-                ExpiryDate = entity.ExpiryDate,
-                ReceivedQty = entity.ReceivedQty,
-                AcceptedQty = entity.AcceptedQty,
-                RejectedQty = entity.RejectedQty,
-                Reason = entity.Reason
-            };
         }
     }
 }
