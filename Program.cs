@@ -100,6 +100,10 @@ builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
 
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
+
+builder.Services.AddScoped<ITransferOrderRepository, TransferOrderRepository>();
+builder.Services.AddScoped<ITransferOrderService, TransferOrderService>();
+
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
 );
