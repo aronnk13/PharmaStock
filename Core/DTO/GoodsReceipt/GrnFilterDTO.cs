@@ -2,7 +2,6 @@ namespace PharmaStock.Core.DTO.GoodsReceipt
 {
     public class GrnFilterDTO
     {
-        public int? PurchaseOrderId { get; set; }
         public int? StatusId { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }

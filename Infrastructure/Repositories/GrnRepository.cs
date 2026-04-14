@@ -61,9 +61,6 @@ namespace PharmaStock.Infrastructure.Repositories
         {
             var query = _context.GoodsReciepts.AsQueryable();
 
-            if (filter.PurchaseOrderId.HasValue)
-                query = query.Where(g => g.PurchaseOrderId == filter.PurchaseOrderId.Value);
-
             if (filter.StatusId.HasValue)
                 query = query.Where(g => g.Status == filter.StatusId.Value);
 

@@ -10,7 +10,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.GoodsReceipt
 {
     [ApiController]
-    [Route("api/goods-receipts")]
+    [Route("api/GoodsReceipts")]
     [Authorize(Roles = "Admin")]
     public class GrnController : ControllerBase
     {
