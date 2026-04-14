@@ -104,6 +104,8 @@ builder.Services.AddScoped<IBinService, BinService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IGrnRepository, GrnRepository>();
+builder.Services.AddScoped<IGrnService, GrnService>();
 
 
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
@@ -112,6 +114,10 @@ builder.Services.AddDbContext<PharmaStockContext>();
 
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
+
+builder.Services.AddScoped<IInventoryLotService, InventoryLotService>();
+builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
+
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
 );
