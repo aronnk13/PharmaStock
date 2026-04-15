@@ -38,7 +38,9 @@ namespace PharmaStock.Infrastructure.Repositories
                     PurchaseOrderId = g.PurchaseOrderId,
                     ReceivedDate = g.ReceivedDate,
                     StatusId = g.Status,
-                    Status = g.StatusNavigation.Status
+                    Status = g.StatusNavigation.Status,
+                    ReceivedByUserId = g.ReceivedBy,
+                    ReceivedByUserName = g.ReceivedByNavigation.Username
                 })
                 .FirstOrDefaultAsync();
         }
@@ -70,6 +72,9 @@ namespace PharmaStock.Infrastructure.Repositories
             if (filter.ToDate.HasValue)
                 query = query.Where(g => g.ReceivedDate <= filter.ToDate.Value);
 
+            if (filter.ReceivedBy.HasValue)
+                query = query.Where(g => g.ReceivedBy == filter.ReceivedBy.Value);
+
             var totalCount = await query.CountAsync();
 
             var pageSize = filter.PageSize > 100 ? 100 : filter.PageSize;
@@ -83,7 +88,9 @@ namespace PharmaStock.Infrastructure.Repositories
                     PurchaseOrderId = g.PurchaseOrderId,
                     ReceivedDate = g.ReceivedDate,
                     StatusId = g.Status,
-                    Status = g.StatusNavigation.Status
+                    Status = g.StatusNavigation.Status,
+                    ReceivedByUserId = g.ReceivedBy,
+                    ReceivedByUserName = g.ReceivedByNavigation.Username
                 })
                 .ToListAsync();
 
