@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PharmaStock.Core.DTO.Transfer;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Models;
 
@@ -31,5 +32,20 @@ namespace PharmaStock.Infrastructure.Repositories
 
         public async Task<IEnumerable<TransferItem>> GetItemsByTransferOrderIdAsync(int transferOrderId) =>
             await _context.TransferItems.Where(t => t.TransferOrderId == transferOrderId).ToListAsync();
+
+        public async Task<IEnumerable<TransferOrder>> GetByFilterAsync(TransferOrderFilterDTO filter)
+        {
+            var query = _context.TransferOrders.AsQueryable();
+
+            if (filter.Status.HasValue)
+                query = query.Where(t => t.Status == filter.Status.Value);
+
+            if (filter.LocationId.HasValue)
+                query = query.Where(t =>
+                    t.FromLocationId == filter.LocationId.Value ||
+                    t.ToLocationId == filter.LocationId.Value);
+
+            return await query.ToListAsync();
+        }
     }
 }

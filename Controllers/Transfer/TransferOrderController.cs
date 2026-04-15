@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Transfer;
 using PharmaStock.Core.Interfaces.Service;
@@ -58,6 +54,21 @@ namespace PharmaStock.Controllers.Transfer
             try
             {
                 var result = await _service.GetAllTransferOrdersAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("search")]
+        public async Task<IActionResult> Search([FromQuery] TransferOrderFilterDTO filter)
+        {
+            try
+            {
+                var result = await _service.GetByFilterAsync(filter);
                 return Ok(result);
             }
             catch (Exception ex)

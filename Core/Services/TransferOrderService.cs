@@ -112,5 +112,18 @@ namespace PharmaStock.Core.Services
                 Quantity = i.Quantity
             });
         }
+
+        public async Task<IEnumerable<TransferOrderResponseDTO>> GetByFilterAsync(TransferOrderFilterDTO filter)
+        {
+            var orders = await _repo.GetByFilterAsync(filter);
+            return orders.Select(o => new TransferOrderResponseDTO
+            {
+                TransferOrderId = o.TransferOrderId,
+                FromLocationId = o.FromLocationId,
+                ToLocationId = o.ToLocationId,
+                CreatedDate = o.CreatedDate,
+                Status = o.Status
+            });
+        }
     }
 }

@@ -30,10 +30,11 @@ namespace PharmaStock.Core.Services
             }
             return new GetDrugDTO
             {
-                GenericName = drugModel.GenericName,   // was missing
+                DrugId = drugModel.DrugId,
+                GenericName = drugModel.GenericName,
                 BrandName = drugModel.BrandName,
-                Strength = drugModel.Strength,         // was missing
-                Form = drugModel.Form,                 // was missing
+                Strength = drugModel.Strength,
+                Form = drugModel.Form,
                 Atccode = drugModel.Atccode,
                 ControlClass = drugModel.ControlClass,
                 StorageClass = drugModel.StorageClass,
@@ -46,8 +47,12 @@ namespace PharmaStock.Core.Services
             var (drugs, totalCount) = await _drugRepository.GetDrugsByFilterAsync(filter);
             var dtoList = drugs.Select(a => new GetDrugDTO
             {
-                Atccode = a.Atccode,
+                DrugId = a.DrugId,
+                GenericName = a.GenericName,
                 BrandName = a.BrandName,
+                Strength = a.Strength,
+                Form = a.Form,
+                Atccode = a.Atccode,
                 ControlClass = a.ControlClass,
                 StorageClass = a.StorageClass,
                 Status = a.Status
