@@ -11,5 +11,6 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<(List<GetGrnDTO>, int)> GetGrnsByFilterAsync(GrnFilterDTO filter);
         Task<GoodsReceiptStatus?> GetGrnStatusByCodeAsync(string statusCode);
         Task<List<int>> GetReceivablePoStatusIdsAsync();
+        Task<string?> GetUsernameByIdAsync(int userId);
     }
 }

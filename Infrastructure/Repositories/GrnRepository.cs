@@ -38,7 +38,8 @@ namespace PharmaStock.Infrastructure.Repositories
                     PurchaseOrderId = g.PurchaseOrderId,
                     ReceivedDate = g.ReceivedDate,
                     StatusId = g.Status,
-                    Status = g.StatusNavigation.Status
+                    Status = g.StatusNavigation.Status,
+                    ReceivedBy = g.ReceivedBy
                 })
                 .FirstOrDefaultAsync();
         }
@@ -49,6 +50,14 @@ namespace PharmaStock.Infrastructure.Repositories
                 .Where(s => s.Status == "Approved" || s.Status == "PartiallyReceived")
                 .Select(s => s.PurchaseOrderStatusId)
                 .ToListAsync();
+        }
+
+        public async Task<string?> GetUsernameByIdAsync(int userId)
+        {
+            return await _context.Users
+                .Where(u => u.UserId == userId)
+                .Select(u => u.Username)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<GoodsReceiptStatus?> GetGrnStatusByCodeAsync(string statusCode)
@@ -70,6 +79,9 @@ namespace PharmaStock.Infrastructure.Repositories
             if (filter.ToDate.HasValue)
                 query = query.Where(g => g.ReceivedDate <= filter.ToDate.Value);
 
+            if (!string.IsNullOrEmpty(filter.ReceivedBy))
+                query = query.Where(g => g.ReceivedBy == filter.ReceivedBy);
+
             var totalCount = await query.CountAsync();
 
             var pageSize = filter.PageSize > 100 ? 100 : filter.PageSize;
@@ -83,7 +95,8 @@ namespace PharmaStock.Infrastructure.Repositories
                     PurchaseOrderId = g.PurchaseOrderId,
                     ReceivedDate = g.ReceivedDate,
                     StatusId = g.Status,
-                    Status = g.StatusNavigation.Status
+                    Status = g.StatusNavigation.Status,
+                    ReceivedBy = g.ReceivedBy
                 })
                 .ToListAsync();
 
