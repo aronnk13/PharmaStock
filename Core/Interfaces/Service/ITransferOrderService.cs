@@ -10,8 +10,7 @@ namespace PharmaStock.Core.Interfaces.Service
     {
         Task<TransferOrderResponseDTO> CreateTransferOrderAsync(CreateTransferOrderDTO dto);
         Task<TransferItemResponseDTO> AddTransferItemAsync(CreateTransferItemDTO dto);
-        Task<IEnumerable<TransferOrderResponseDTO>> GetAllTransferOrdersAsync();
+        Task<IEnumerable<TransferOrderResponseDTO>> GetAllTransferOrdersAsync(TransferOrderFilterDTO? filter = null);
         Task<IEnumerable<TransferItemResponseDTO>> GetItemsByTransferOrderIdAsync(int transferOrderId);
-        Task<IEnumerable<TransferOrderResponseDTO>> GetByFilterAsync(TransferOrderFilterDTO filter);
     }
 }

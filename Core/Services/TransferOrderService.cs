@@ -87,9 +87,9 @@ namespace PharmaStock.Core.Services
             };
         }
 
-        public async Task<IEnumerable<TransferOrderResponseDTO>> GetAllTransferOrdersAsync()
+        public async Task<IEnumerable<TransferOrderResponseDTO>> GetAllTransferOrdersAsync(TransferOrderFilterDTO? filter = null)
         {
-            var orders = await _repo.GetAllAsync();
+            var orders = await _repo.GetByFilterAsync(filter ?? new TransferOrderFilterDTO());
             return orders.Select(o => new TransferOrderResponseDTO
             {
                 TransferOrderId = o.TransferOrderId,
@@ -113,17 +113,5 @@ namespace PharmaStock.Core.Services
             });
         }
 
-        public async Task<IEnumerable<TransferOrderResponseDTO>> GetByFilterAsync(TransferOrderFilterDTO filter)
-        {
-            var orders = await _repo.GetByFilterAsync(filter);
-            return orders.Select(o => new TransferOrderResponseDTO
-            {
-                TransferOrderId = o.TransferOrderId,
-                FromLocationId = o.FromLocationId,
-                ToLocationId = o.ToLocationId,
-                CreatedDate = o.CreatedDate,
-                Status = o.Status
-            });
-        }
     }
 }

@@ -49,26 +49,11 @@ namespace PharmaStock.Controllers.Transfer
 
         [HttpGet]
         [Route("getAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] TransferOrderFilterDTO filter)
         {
             try
             {
-                var result = await _service.GetAllTransferOrdersAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet]
-        [Route("search")]
-        public async Task<IActionResult> Search([FromQuery] TransferOrderFilterDTO filter)
-        {
-            try
-            {
-                var result = await _service.GetByFilterAsync(filter);
+                var result = await _service.GetAllTransferOrdersAsync(filter);
                 return Ok(result);
             }
             catch (Exception ex)
