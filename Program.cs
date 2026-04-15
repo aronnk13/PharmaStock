@@ -104,12 +104,26 @@ builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 
+builder.Services.AddScoped<ITransferOrderRepository, TransferOrderRepository>();
+builder.Services.AddScoped<ITransferOrderService, TransferOrderService>();
+builder.Services.AddScoped<IGRNItemRepository, GRNItemRepository>();
+builder.Services.AddScoped<IGRNItemService, GRNItemService>();
 builder.Services.AddScoped<IInventoryLotService, InventoryLotService>();
 builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
 
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
 );
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -122,6 +136,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
 
