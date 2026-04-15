@@ -15,7 +15,7 @@ namespace PharmaStock.Core.Services
             _grnRepository = grnRepository;
         }
 
-        public async Task<GetGrnDTO> CreateGrnAsync(CreateGrnDTO request)
+        public async Task<GetGrnDTO> CreateGrnAsync(CreateGrnDTO request, int userId)
         {
             // 1. PO must exist
             var po = await _grnRepository.GetPurchaseOrderByIdAsync(request.PurchaseOrderId);
@@ -36,12 +36,16 @@ namespace PharmaStock.Core.Services
             if (openStatus == null)
                 throw new InvalidOperationException("INTERNAL_ERROR");
 
-            // 5. Create with Open status
+            // 5. Look up username from DB
+            var username = await _grnRepository.GetUsernameByIdAsync(userId);
+
+            // 6. Create with Open status
             var grn = new GoodsReciept
             {
                 PurchaseOrderId = request.PurchaseOrderId,
                 ReceivedDate = request.ReceivedDate,
-                Status = openStatus.GoodsReceiptStatusId
+                Status = openStatus.GoodsReceiptStatusId,
+                ReceivedBy = username
             };
 
             await _grnRepository.AddAsync(grn);
@@ -103,7 +107,7 @@ namespace PharmaStock.Core.Services
                 grn.ReceivedDate = request.ReceivedDate.Value;
             }
 
-            await _grnRepository.UpdateAsync(grn);
+await _grnRepository.UpdateAsync(grn);
 
             return await _grnRepository.GetGrnDtoByIdAsync(grnId)!;
         }

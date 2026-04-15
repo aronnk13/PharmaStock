@@ -7,7 +7,6 @@ namespace PharmaStock.Core.DTO.GoodsReceipt
         public DateTime ReceivedDate { get; set; }
         public int StatusId { get; set; }
         public string Status { get; set; } = null!;
-        public int ReceivedByUserId { get; set; }
-        public string? ReceivedByUserName { get; set; }
+        public string? ReceivedBy { get; set; }
     }
 }

@@ -39,8 +39,7 @@ namespace PharmaStock.Infrastructure.Repositories
                     ReceivedDate = g.ReceivedDate,
                     StatusId = g.Status,
                     Status = g.StatusNavigation.Status,
-                    ReceivedByUserId = g.ReceivedBy,
-                    ReceivedByUserName = g.ReceivedByNavigation.Username
+                    ReceivedBy = g.ReceivedBy
                 })
                 .FirstOrDefaultAsync();
         }
@@ -51,6 +50,14 @@ namespace PharmaStock.Infrastructure.Repositories
                 .Where(s => s.Status == "Approved" || s.Status == "PartiallyReceived")
                 .Select(s => s.PurchaseOrderStatusId)
                 .ToListAsync();
+        }
+
+        public async Task<string?> GetUsernameByIdAsync(int userId)
+        {
+            return await _context.Users
+                .Where(u => u.UserId == userId)
+                .Select(u => u.Username)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<GoodsReceiptStatus?> GetGrnStatusByCodeAsync(string statusCode)
@@ -72,8 +79,8 @@ namespace PharmaStock.Infrastructure.Repositories
             if (filter.ToDate.HasValue)
                 query = query.Where(g => g.ReceivedDate <= filter.ToDate.Value);
 
-            if (filter.ReceivedBy.HasValue)
-                query = query.Where(g => g.ReceivedBy == filter.ReceivedBy.Value);
+            if (!string.IsNullOrEmpty(filter.ReceivedBy))
+                query = query.Where(g => g.ReceivedBy == filter.ReceivedBy);
 
             var totalCount = await query.CountAsync();
 
@@ -89,8 +96,7 @@ namespace PharmaStock.Infrastructure.Repositories
                     ReceivedDate = g.ReceivedDate,
                     StatusId = g.Status,
                     Status = g.StatusNavigation.Status,
-                    ReceivedByUserId = g.ReceivedBy,
-                    ReceivedByUserName = g.ReceivedByNavigation.Username
+                    ReceivedBy = g.ReceivedBy
                 })
                 .ToListAsync();
 
