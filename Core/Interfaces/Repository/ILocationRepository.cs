@@ -12,5 +12,7 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<bool> IsLocationExists(string name, int locationTypeId, int? excludeId = null);
         Task<bool> HasChildLocations(int locationId);
         Task<string?> GetLocationTypeName(int locationTypeId);
+        Task<IEnumerable<LocationType>> GetAllLocationTypesAsync();
+        Task<LocationType?> GetLocationTypeByIdAsync(int id);
     }
 }

@@ -63,5 +63,15 @@ namespace PharmaStock.Infrastructure.Repositories
             var locationType = await _context.LocationTypes.FindAsync(locationTypeId);
             return locationType?.Type;
         }
+
+        public async Task<IEnumerable<LocationType>> GetAllLocationTypesAsync()
+        {
+            return await _context.LocationTypes.ToListAsync();
+        }
+
+        public async Task<LocationType?> GetLocationTypeByIdAsync(int id)
+        {
+            return await _context.LocationTypes.FindAsync(id);
+        }
     }
 }

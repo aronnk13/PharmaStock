@@ -168,5 +168,23 @@ namespace PharmaStock.Controllers.Location
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // ── Location Types ────────────────────────────────────────────────────
+
+        [HttpGet("types")]
+        public async Task<IActionResult> GetAllLocationTypes()
+        {
+            var types = await _locationService.GetAllLocationTypes();
+            return Ok(types);
+        }
+
+        [HttpGet("types/{id}")]
+        public async Task<IActionResult> GetLocationTypeById(int id)
+        {
+            var type = await _locationService.GetLocationTypeById(id);
+            if (type == null)
+                return NotFound(new { errorCode = "LOCATION_TYPE_NOT_FOUND", message = $"Location type with ID {id} not found." });
+            return Ok(type);
+        }
     }
 }

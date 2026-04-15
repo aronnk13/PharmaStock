@@ -132,6 +132,23 @@ namespace PharmaStock.Core.Services
             }
         }
 
+        public async Task<IEnumerable<GetLocationTypeDTO>> GetAllLocationTypes()
+        {
+            var types = await _locationRepository.GetAllLocationTypesAsync();
+            return types.Select(t => new GetLocationTypeDTO
+            {
+                LocationTypeId = t.LocationTypeId,
+                Type = t.Type
+            });
+        }
+
+        public async Task<GetLocationTypeDTO?> GetLocationTypeById(int id)
+        {
+            var type = await _locationRepository.GetLocationTypeByIdAsync(id);
+            if (type == null) return null;
+            return new GetLocationTypeDTO { LocationTypeId = type.LocationTypeId, Type = type.Type };
+        }
+
         private static GetLocationDTO MapToGetDTO(Location location) => new GetLocationDTO
         {
             LocationId = location.LocationId,

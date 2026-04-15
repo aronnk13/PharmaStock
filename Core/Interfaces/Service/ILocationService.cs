@@ -9,5 +9,7 @@ namespace PharmaStock.Core.Interfaces.Service
         Task<GetLocationDTO> CreateLocation(CreateLocationDTO dto);
         Task<bool> UpdateLocation(UpdateLocationDTO dto);
         Task<bool> DeleteLocation(int id);
+        Task<IEnumerable<GetLocationTypeDTO>> GetAllLocationTypes();
+        Task<GetLocationTypeDTO?> GetLocationTypeById(int id);
     }
 }
