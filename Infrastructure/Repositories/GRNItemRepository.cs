@@ -44,9 +44,32 @@ namespace PharmaStock.Infrastructure.Repositories
                 .FirstOrDefaultAsync(i => i.GoodsReceiptItemId == goodsReceiptItemId);
         }
 
+        public async Task<GRNItemResponseDTO?> GetByIdAsync(int goodsReceiptItemId)
+        {
+            return await _context.GoodsReceiptItems
+                .Include(i => i.PurchaseOrderItem)
+                .Where(i => i.GoodsReceiptItemId == goodsReceiptItemId)
+                .Select(i => new GRNItemResponseDTO
+                {
+                    GoodsReceiptItemId = i.GoodsReceiptItemId,
+                    GoodsReceiptId = i.GoodsReceiptId,
+                    PurchaseOrderItemId = i.PurchaseOrderItemId,
+                    BatchNumber = i.BatchNumber,
+                    ExpiryDate = i.ExpiryDate,
+                    ReceivedQty = i.ReceivedQty,
+                    AcceptedQty = i.AcceptedQty,
+                    RejectedQty = i.RejectedQty,
+                    Reason = i.Reason,
+                    OverShipmentFlag = i.ReceivedQty > i.PurchaseOrderItem.OrderedQty
+                })
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<(List<GRNItemResponseDTO>, int)> GetFilteredItemsAsync(GRNItemFilterDTO filter)
         {
-            var query = _context.GoodsReceiptItems.AsQueryable();
+            var query = _context.GoodsReceiptItems
+                .Include(i => i.PurchaseOrderItem)
+                .AsQueryable();
 
             if (filter.BatchNumber.HasValue)
                 query = query.Where(i => i.BatchNumber == filter.BatchNumber.Value);
@@ -61,12 +84,16 @@ namespace PharmaStock.Infrastructure.Repositories
                 .Take(filter.PageSize)
                 .Select(i => new GRNItemResponseDTO
                 {
+                    GoodsReceiptItemId = i.GoodsReceiptItemId,
+                    GoodsReceiptId = i.GoodsReceiptId,
+                    PurchaseOrderItemId = i.PurchaseOrderItemId,
                     BatchNumber = i.BatchNumber,
                     ExpiryDate = i.ExpiryDate,
                     ReceivedQty = i.ReceivedQty,
                     AcceptedQty = i.AcceptedQty,
                     RejectedQty = i.RejectedQty,
-                    Reason = i.Reason
+                    Reason = i.Reason,
+                    OverShipmentFlag = i.ReceivedQty > i.PurchaseOrderItem.OrderedQty
                 })
                 .ToListAsync();
 
