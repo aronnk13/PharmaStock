@@ -94,6 +94,9 @@ builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<IBinRepository, BinRepository>();
 builder.Services.AddScoped<IBinService, BinService>();
 
+builder.Services.AddScoped<IGrnRepository, GrnRepository>();
+builder.Services.AddScoped<IGrnService, GrnService>();
+
 
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
 builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
@@ -103,6 +106,10 @@ builder.Services.AddScoped<IVendorService, VendorService>();
 
 builder.Services.AddScoped<ITransferOrderRepository, TransferOrderRepository>();
 builder.Services.AddScoped<ITransferOrderService, TransferOrderService>();
+builder.Services.AddScoped<IGRNItemRepository, GRNItemRepository>();
+builder.Services.AddScoped<IGRNItemService, GRNItemService>();
+builder.Services.AddScoped<IInventoryLotService, InventoryLotService>();
+builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
 
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))

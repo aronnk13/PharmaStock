@@ -119,8 +119,8 @@ public partial class PharmaStockContext : DbContext
     // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //     => optionsBuilder.UseSqlServer("Server=LTIN718783\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
     // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //     => optionsBuilder.UseSqlServer("LTIN718770\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
-        
+    //     => optionsBuilder.UseSqlServer("Server=LTIN717944\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Audit>(entity =>
