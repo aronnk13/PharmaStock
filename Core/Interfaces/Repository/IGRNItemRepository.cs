@@ -8,6 +8,7 @@ namespace PharmaStock.Core.Interfaces.Repository
 
         Task<GoodsReciept?> GetGoodsReceiptWithDetailsAsync(int goodsReceiptId);
         Task<GoodsReceiptItem?> GetItemWithDetailsAsync(int goodsReceiptItemId);
+        Task<GRNItemResponseDTO?> GetByIdAsync(int goodsReceiptItemId);
         Task<Item?> GetItemByIdAsync(int itemId);
         Task<PurchaseItem?> GetPurchaseItemByIdAsync(int purchaseItemId);
         Task<(List<GRNItemResponseDTO>, int)> GetFilteredItemsAsync(GRNItemFilterDTO filter);
