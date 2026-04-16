@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Register;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +8,7 @@ namespace PharmaStock.Controllers.Admin
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
         private readonly IUserService _userService;
