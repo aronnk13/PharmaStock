@@ -18,6 +18,11 @@ namespace PharmaStock.Infrastructure.Services
             _repository = repository;
         }
 
+        public async Task<List<GetAuditDTO>> GetAllAsync()
+        {
+            return await _repository.GetAllAsync();
+        }
+
         public async Task<AuditLog> CreateLogAsync(AuditDto dto)
         {
             var audit = new Audit

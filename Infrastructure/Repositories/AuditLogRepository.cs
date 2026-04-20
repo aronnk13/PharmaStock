@@ -11,6 +11,23 @@ namespace PharmaStock.Infrastructure.Repositories
 {
     public class AuditLogRepository(PharmaStockContext pharmaStockContext) : IAuditLogRepository
     {
+        public async System.Threading.Tasks.Task<List<GetAuditDTO>> GetAllAsync()
+        {
+            return await pharmaStockContext.Audits
+                .OrderByDescending(a => a.Timestamp)
+                .Select(a => new GetAuditDTO
+                {
+                    AuditId = a.AuditId,
+                    UserId = a.UserId,
+                    Username = a.User.Username,
+                    Action = a.Action,
+                    Resource = a.Resource,
+                    Timestamp = a.Timestamp,
+                    Metadata = a.Metadata
+                })
+                .ToListAsync();
+        }
+
         public async Task<AuditLog> AddAsync(Audit log)
         {
             var res=new AuditLog();
