@@ -11,3 +11,4 @@ public partial class DrugForm
 
     public virtual ICollection<Drug> Drugs { get; set; } = new List<Drug>();
 }
+

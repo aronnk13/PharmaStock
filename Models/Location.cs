@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PharmaStock.Models;
 
@@ -42,4 +43,7 @@ public partial class Location
     public virtual ICollection<TransferOrder> TransferOrderFromLocations { get; set; } = new List<TransferOrder>();
 
     public virtual ICollection<TransferOrder> TransferOrderToLocations { get; set; } = new List<TransferOrder>();
+
+
+
 }
