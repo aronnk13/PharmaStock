@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Drug;
 using PharmaStock.Core.Interfaces.Service;
-using PharmaStock.Core.Services;
 
 namespace PharmaStock.Controllers.Drug
 {
