@@ -38,6 +38,17 @@ BEGIN
     );
 END
 
+-- Run these lines in your local PharmaStock DB
+--1.
+ALTER TABLE GoodsReciept
+ADD ReceivedBy INT NULL;
+--2.
+UPDATE GoodsReciept
+SET ReceivedBy = 1;
+--3.
+ALTER TABLE GoodsReciept
+ADD CONSTRAINT FK_GR_ReceivedBy FOREIGN KEY (ReceivedBy) REFERENCES [User](UserID);
+
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Task')
 BEGIN
     CREATE TABLE Task (

@@ -19,6 +19,20 @@ namespace PharmaStock.Controllers.ProductItem
         {
             service = _service;
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAllPurchaseItems()
+        {
+            try
+            {
+                var res = await service.GetAllPIAsync();
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("create")]
         public async Task<IActionResult> CreatePurchaseItem(CreatePurchaseItemDTO dto)

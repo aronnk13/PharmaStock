@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace PharmaStock.Models;
@@ -12,6 +12,8 @@ public partial class GoodsReciept
     public DateTime ReceivedDate { get; set; }
 
     public int Status { get; set; }
+
+    public string? ReceivedBy { get; set; }
 
     public virtual ICollection<GoodsReceiptItem> GoodsReceiptItems { get; set; } = new List<GoodsReceiptItem>();
 
