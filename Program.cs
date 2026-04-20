@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PharmaStock.Core.Validators.Auth;
 using PharmaStock.Infrastructure.Services;
 using System.Security.Claims;
+using PharmaStock.Core.Interfaces.Service;
+using PharmaStock.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -123,6 +125,19 @@ builder.Services.AddScoped<IInventoryBalanceRepository, InventoryBalanceReposito
 builder.Services.AddScoped<IInventoryBalanceService, InventoryBalanceService>();
 
 builder.Services.AddScoped<IInventoryDashboardService, InventoryDashboardService>();
+
+// QCO
+builder.Services.AddScoped<IQuarantineRepository, QuarantineRepository>();
+builder.Services.AddScoped<IRecallNoticeRepository, RecallNoticeRepository>();
+builder.Services.AddScoped<IStockAdjustmentRepository, StockAdjustmentRepository>();
+builder.Services.AddScoped<IQuarantineService, QuarantineService>();
+builder.Services.AddScoped<IRecallNoticeService, RecallNoticeService>();
+builder.Services.AddScoped<IQCODashboardService, QCODashboardService>();
+
+// Pharmacist
+builder.Services.AddScoped<IDispenseRepository, DispenseRepository>();
+builder.Services.AddScoped<IDispenseService, DispenseService>();
+builder.Services.AddScoped<IPharmacistDashboardService, PharmacistDashboardService>();
 
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))

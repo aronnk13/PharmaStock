@@ -5,7 +5,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.ExpiryWatch
 {
     [ApiController]
-    [Authorize(Roles = "InventoryController")]
+    [Authorize(Roles = "InventoryController,QualityComplianceOfficer,Pharmacist")]
     [Route("api/expirywatch")]
     public class ExpiryWatchController : ControllerBase
     {
