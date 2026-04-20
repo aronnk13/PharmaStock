@@ -31,12 +31,25 @@ namespace PharmaStock.Controllers.Auth
             }
             catch (UnauthorizedAccessException ex) when (ex.Message == "INVALID_PASSWORD")
             {
-                return Unauthorized(new { message = "Invalid Password." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+            new Claim("userId", user.UserId.ToString()),
+            new Claim(ClaimTypes.Role, user.Role.RoleType),
+            new Claim("role", user.Role.RoleType)
+            };
+
+            var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Issuer"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(1),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

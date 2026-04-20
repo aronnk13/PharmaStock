@@ -14,8 +14,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PharmaStock.Core.Validators.Auth;
 using PharmaStock.Core.Validators.Location;
 using PharmaStock.Infrastructure.Services;
-using PharmaStock.Models;
-using System.Text.Json.Serialization;
+using System.Security.Claims;
+using PharmaStock.Core.Interfaces.Service;
+using PharmaStock.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,7 +57,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtIssuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
@@ -127,15 +129,50 @@ builder.Services.AddDbContext<PharmaStockContext>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 
-builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
-builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
-
+builder.Services.AddScoped<ITransferOrderRepository, TransferOrderRepository>();
+builder.Services.AddScoped<ITransferOrderService, TransferOrderService>();
+builder.Services.AddScoped<IGRNItemRepository, GRNItemRepository>();
+builder.Services.AddScoped<IGRNItemService, GRNItemService>();
 builder.Services.AddScoped<IInventoryLotService, InventoryLotService>();
 builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
+
+builder.Services.AddScoped<IReplenishmentRepository, ReplenishmentRepository>();
+builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
+
+builder.Services.AddScoped<IExpiryWatchRepository, ExpiryWatchRepository>();
+builder.Services.AddScoped<IExpiryWatchService, ExpiryWatchService>();
+
+builder.Services.AddScoped<IInventoryBalanceRepository, InventoryBalanceRepository>();
+builder.Services.AddScoped<IInventoryBalanceService, InventoryBalanceService>();
+
+builder.Services.AddScoped<IInventoryDashboardService, InventoryDashboardService>();
+
+// QCO
+builder.Services.AddScoped<IQuarantineRepository, QuarantineRepository>();
+builder.Services.AddScoped<IRecallNoticeRepository, RecallNoticeRepository>();
+builder.Services.AddScoped<IStockAdjustmentRepository, StockAdjustmentRepository>();
+builder.Services.AddScoped<IQuarantineService, QuarantineService>();
+builder.Services.AddScoped<IRecallNoticeService, RecallNoticeService>();
+builder.Services.AddScoped<IQCODashboardService, QCODashboardService>();
+
+// Pharmacist
+builder.Services.AddScoped<IDispenseRepository, DispenseRepository>();
+builder.Services.AddScoped<IDispenseService, DispenseService>();
+builder.Services.AddScoped<IPharmacistDashboardService, PharmacistDashboardService>();
 
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))
 );
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -148,6 +185,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();

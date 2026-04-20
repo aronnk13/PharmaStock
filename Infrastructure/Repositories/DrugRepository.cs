@@ -96,10 +96,17 @@ namespace PharmaStock.Infrastructure.Repositories
             {
                 var drug = await _pStockContext.Drugs.FindAsync(drugId);
                 if (drug == null)
-                    return new DrugDeletedResponseDTO { IsDeleted = false, Message = "Drug not found." };
+                {
+                    return new DrugDeletedResponseDTO
+                    {
+                        IsDeleted = false,
+                        Message = "Drug not found."
+                    };
+                }
 
-                drug.Status = false;
-                _pStockContext.Drugs.Update(drug);
+                // 2. Remove from database
+                _pStockContext.Drugs.Remove(drug);
+
                 var rowsAffected = await _pStockContext.SaveChangesAsync();
 
                 if (rowsAffected > 0)
