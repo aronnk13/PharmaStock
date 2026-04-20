@@ -1,20 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace PharmaStock.Core.DTO.Item
 {
-
     public class ItemDTO
     {
+        [Required]
         public int DrugId { get; set; }
-        public int? PackSize { get; set; }
-        public int UoM { get; set; }
-        public decimal ConversionToEach { get; set; }
-        public string Barcode { get; set; } = null!;
-        public bool Status { get; set; }
-        public int ItemId { get; internal set; }
-    }
 
+        public int? PackSize { get; set; }
+
+        [Required]
+        public int UoMId { get; set; }
+
+        [Required]
+        public decimal ConversionToEach { get; set; }
+
+        public string? Barcode { get; set; }
+
+        public bool Status { get; set; } = true;
+    }
 }

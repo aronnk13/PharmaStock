@@ -23,6 +23,27 @@ namespace PharmaStock.Core.Services
             auditLogService = _auditLogService;
             httpContextAccessor = _httpContextAccessor;
         }
+        public async Task<IEnumerable<PurchaseItemResponseDTO>> GetAllPIAsync()
+        {
+            var items = await pirepo.GetAllAsync();
+            return items.Select(pi =>
+            {
+                var baseAmount = pi.UnitPrice * pi.OrderedQty;
+                var taxAmount = baseAmount * (pi.TaxPct / 100);
+                return new PurchaseItemResponseDTO
+                {
+                    PurchaseItemId = pi.PurchaseItemId,
+                    PurchaseOrderId = pi.PurchaseOrderId,
+                    ItemId = pi.ItemId,
+                    OrderedQty = pi.OrderedQty,
+                    UnitPrice = pi.UnitPrice,
+                    TaxPct = pi.TaxPct,
+                    TaxAmount = taxAmount,
+                    TotalAmount = baseAmount + taxAmount
+                };
+            });
+        }
+
         public async Task<PurchaseItemResponseDTO> AddPIAsync(CreatePurchaseItemDTO dto)
         {
             var isItemvalid = await pirepo.IsItemIdValid(dto.ItemId);

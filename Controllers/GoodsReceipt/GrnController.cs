@@ -40,7 +40,7 @@ namespace PharmaStock.Controllers.GoodsReceipt
 
             try
             {
-                var result = await _grnService.CreateGrnAsync(request);
+                var result = await _grnService.CreateGrnAsync(request, GetCurrentUserId());
 
                 await _auditLogService.CreateLogAsync(new AuditDto
                 {
@@ -114,7 +114,7 @@ namespace PharmaStock.Controllers.GoodsReceipt
                     return NotFound(new { errorCode = "GRN_NOT_FOUND", message = "Goods receipt not found." });
 
                 var result = await _grnService.UpdateGrnAsync(grnId, request);
-                
+
                 // Determine audit action based on what changed
                 var action = request.StatusId == 2 ? "GRN_POSTED"
                            : request.StatusId == 3 ? "GRN_REJECTED"
@@ -140,7 +140,7 @@ namespace PharmaStock.Controllers.GoodsReceipt
             }
             catch (ArgumentException ex) when (ex.Message == "INVALID_STATUS")
             {
-                return BadRequest(new { errorCode = "INVALID_STATUS", message = "StatusId must be 2 (Post) or 3 (Reject)." });
+                return BadRequest(new { errorCode = "INVALID_STATUS", message = "Invalid statusId. Use 2 to Post, 3 to Reject, or omit/null to leave status unchanged." });
             }
             catch (InvalidOperationException ex) when (ex.Message == "GRN_NOT_EDITABLE")
             {

@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Audit;
 using PharmaStock.Models;
+using Task = System.Threading.Tasks.Task;
 
 namespace PharmaStock.Core.Interfaces
 {
     public interface IAuditLogService
     {
         Task<AuditLog> CreateLogAsync(AuditDto dto);
+        Task<List<GetAuditDTO>> GetAllAsync();
     }
 }

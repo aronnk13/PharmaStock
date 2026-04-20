@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PharmaStock.Core.DTO.Auth;
-using PharmaStock.Core.DTO.Common;
 using PharmaStock.Core.DTO.Drug;
 using PharmaStock.Core.Interfaces;
 using PharmaStock.Models;
@@ -21,31 +16,67 @@ namespace PharmaStock.Infrastructure.Repositories
             _pStockContext = pharmaStockContext;
         }
 
-        public async Task<(List<Drug>, int)> GetDrugsByFilterAsync(DrugFilterDTO filter)
+        public async Task<GetDrugDTO?> GetDrugDtoByIdAsync(int id)
         {
-            var result = _pStockContext.Drugs.AsQueryable();
+            return await _pStockContext.Drugs
+                .Where(d => d.DrugId == id)
+                .Select(d => new GetDrugDTO
+                {
+                    DrugId = d.DrugId,
+                    GenericName = d.GenericName,
+                    BrandName = d.BrandName,
+                    Strength = d.Strength,
+                    FormId = d.Form,
+                    FormName = d.FormNavigation.Form,
+                    Atccode = d.Atccode,
+                    ControlClassId = d.ControlClass,
+                    ControlClassName = d.ControlClassNavigation.Class,
+                    StorageClassId = d.StorageClass,
+                    StorageClassName = d.StorageClassNavigation.Class,
+                    Status = d.Status
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<(List<GetDrugDTO>, int)> GetDrugsByFilterAsync(DrugFilterDTO filter)
+        {
+            var query = _pStockContext.Drugs.AsQueryable();
+
             if (filter.GenericName != null)
-            {
-                result = result.Where(q => q.GenericName.Contains(filter.GenericName));
-            }
+                query = query.Where(d => d.GenericName.Contains(filter.GenericName));
+
             if (filter.StorageClass != null)
-            {
-                result = result.Where(q => q.StorageClass == filter.StorageClass);
-            }
+                query = query.Where(d => d.StorageClass == filter.StorageClass);
+
             if (filter.ControlClass != null)
-            {
-                result = result.Where(q => q.ControlClass == filter.ControlClass);
-            }
+                query = query.Where(d => d.ControlClass == filter.ControlClass);
+
             if (filter.Status != null)
-            {
-                result = result.Where(q => q.Status == filter.Status);
-            }
+                query = query.Where(d => d.Status == filter.Status);
 
-            var totalCount = await result.CountAsync();
+            var totalCount = await query.CountAsync();
 
-            var drugs = await result.Skip((filter.Page - 1) * filter.PageSize)
-                                    .Take(filter.PageSize)
-                                    .ToListAsync();
+            var pageSize = filter.PageSize > 100 ? 100 : filter.PageSize;
+
+            var drugs = await query
+                .Skip((filter.Page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(d => new GetDrugDTO
+                {
+                    DrugId = d.DrugId,
+                    GenericName = d.GenericName,
+                    BrandName = d.BrandName,
+                    Strength = d.Strength,
+                    FormId = d.Form,
+                    FormName = d.FormNavigation.Form,
+                    Atccode = d.Atccode,
+                    ControlClassId = d.ControlClass,
+                    ControlClassName = d.ControlClassNavigation.Class,
+                    StorageClassId = d.StorageClass,
+                    StorageClassName = d.StorageClassNavigation.Class,
+                    Status = d.Status
+                })
+                .ToListAsync();
 
             return (drugs, totalCount);
         }
@@ -56,16 +87,14 @@ namespace PharmaStock.Infrastructure.Repositories
                 d.GenericName == name &&
                 d.Strength == strength &&
                 d.Form == form &&
-                // If excludeId has a value, skip that record (essential for Updates)
                 (!excludeId.HasValue || d.DrugId != excludeId.Value));
         }
-        public async Task<DrugDeletedResponseDTO> DeleteDrug(int DrugId)
+
+        public async Task<DrugDeletedResponseDTO> DeleteDrug(int drugId)
         {
             try
             {
-                // 1. Check for drug availability
-                var drug = await _pStockContext.Drugs.FindAsync(DrugId);
-
+                var drug = await _pStockContext.Drugs.FindAsync(drugId);
                 if (drug == null)
                 {
                     return new DrugDeletedResponseDTO
@@ -81,28 +110,13 @@ namespace PharmaStock.Infrastructure.Repositories
                 var rowsAffected = await _pStockContext.SaveChangesAsync();
 
                 if (rowsAffected > 0)
-                {
-                    return new DrugDeletedResponseDTO
-                    {
-                        IsDeleted = true,
-                        Message = "Drug Deleted Successfully."
-                    };
-                }
+                    return new DrugDeletedResponseDTO { IsDeleted = true, Message = "Drug deleted successfully." };
 
-                return new DrugDeletedResponseDTO
-                {
-                    IsDeleted = false,
-                    Message = "Delete failed: No changes were saved to the database."
-                };
+                return new DrugDeletedResponseDTO { IsDeleted = false, Message = "Delete failed: no changes saved." };
             }
             catch (Exception ex)
             {
-                // Capture the exception message or a custom one
-                return new DrugDeletedResponseDTO
-                {
-                    IsDeleted = false,
-                    Message = $"An error occurred: {ex.Message}"
-                };
+                return new DrugDeletedResponseDTO { IsDeleted = false, Message = $"An error occurred: {ex.Message}" };
             }
         }
     }

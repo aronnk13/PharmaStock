@@ -1,5 +1,3 @@
-using System;
-
 namespace PharmaStock.Core.DTO.Drug
 {
     public class GetDrugDTO

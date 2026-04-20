@@ -1,62 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
-using BCrypt.Net;
-using Microsoft.EntityFrameworkCore;
 using PharmaStock.Core.DTO.Auth;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using PharmaStock.Models;
+using PharmaStock.Core.Interfaces.Service;
 
-namespace PharmaStock.Controllers
+namespace PharmaStock.Controllers.Auth
 {
     [ApiController]
     [Route("api/[controller]")]
     public class LoginController : ControllerBase
     {
-        private readonly PharmaStockContext _context;
-        private readonly IConfiguration _configuration;
+        private readonly IAuthService _authService;
 
-        public LoginController(PharmaStockContext context, IConfiguration configuration)
+        public LoginController(IAuthService authService)
         {
-            _context = context;
-            _configuration = configuration;
+            _authService = authService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginDTO request)
         {
             if (request == null)
-            {
                 return BadRequest(new { message = "Invalid Client Request" });
-            }
-
-            // 1. Fetch User (Notice the use of Deferred Execution with Include)
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Username == request.Username);
-
-            if (user == null)
-                return Unauthorized(new { message = "Invalid Username" });
-
-            // 2. Password Check (Direct comparison is for demo; use BCrypt in production!)
-            if (request.Password != user.PasswordHash)
-                return Unauthorized(new { message = "Invalid password" });
-
-            // 3. Generate Token using the new private method
-            var tokenString = GenerateJwtToken(user);
-
-            return Ok(new
+            try
             {
-                token = tokenString,
-                userId = user.UserId,
-                role = user.Role.RoleType
-            });
-        }
-
-            private string GenerateJwtToken(User user)
-        {
-            var claims = new[]
+                var response = await _authService.LoginAsync(request);
+                return Ok(response);
+            }
+            catch (UnauthorizedAccessException ex) when (ex.Message == "INVALID_USERNAME")
+            {
+                return Unauthorized(new { message = "Invalid Username." });
+            }
+            catch (UnauthorizedAccessException ex) when (ex.Message == "INVALID_PASSWORD")
             {
             new Claim(JwtRegisteredClaimNames.Sub, user.Username),
             new Claim("userId", user.UserId.ToString()),
