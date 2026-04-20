@@ -15,7 +15,16 @@ using PharmaStock.Core.Validators.Auth;
 using PharmaStock.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 
@@ -104,6 +113,9 @@ builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 
+builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+
 builder.Services.AddScoped<IInventoryLotService, InventoryLotService>();
 builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
 
@@ -122,6 +134,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
 
