@@ -139,6 +139,10 @@ namespace PharmaStock.Controllers.Bin
             {
                 return NotFound(new { errorCode = "STORAGE_CLASS_NOT_FOUND", message = "Storage class not found." });
             }
+            catch (InvalidOperationException ex) when (ex.Message == "BIN_CODE_DUPLICATE")
+            {
+                return Conflict(new { errorCode = "BIN_CODE_DUPLICATE", message = $"Bin code '{request.Code}' already exists under the same location." });
+            }
             catch (InvalidOperationException ex) when (ex.Message == "BIN_HAS_INVENTORY")
             {
                 return Conflict(new { errorCode = "BIN_HAS_INVENTORY", message = "Cannot change storage class or deactivate bin while it has inventory." });
