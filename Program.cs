@@ -13,6 +13,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PharmaStock.Core.Validators.Auth;
 using PharmaStock.Infrastructure.Services;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +42,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtIssuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
@@ -110,6 +112,17 @@ builder.Services.AddScoped<IGRNItemRepository, GRNItemRepository>();
 builder.Services.AddScoped<IGRNItemService, GRNItemService>();
 builder.Services.AddScoped<IInventoryLotService, InventoryLotService>();
 builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
+
+builder.Services.AddScoped<IReplenishmentRepository, ReplenishmentRepository>();
+builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
+
+builder.Services.AddScoped<IExpiryWatchRepository, ExpiryWatchRepository>();
+builder.Services.AddScoped<IExpiryWatchService, ExpiryWatchService>();
+
+builder.Services.AddScoped<IInventoryBalanceRepository, InventoryBalanceRepository>();
+builder.Services.AddScoped<IInventoryBalanceService, InventoryBalanceService>();
+
+builder.Services.AddScoped<IInventoryDashboardService, InventoryDashboardService>();
 
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))

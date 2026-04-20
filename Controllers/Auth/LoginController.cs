@@ -60,6 +60,7 @@ namespace PharmaStock.Controllers
             {
             new Claim(JwtRegisteredClaimNames.Sub, user.Username),
             new Claim("userId", user.UserId.ToString()),
+            new Claim(ClaimTypes.Role, user.Role.RoleType),
             new Claim("role", user.Role.RoleType)
             };
 
