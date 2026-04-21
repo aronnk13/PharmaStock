@@ -19,8 +19,9 @@ namespace PharmaStock.Infrastructure.Repositories
 
         public async Task<int> CountOpenAsync()
         {
+            // Status = true means the recall is still ACTIVE/OPEN
             return await _pharmaStockContext.RecallNotices
-                .Where(r => r.Status == false)
+                .Where(r => r.Status == true)
                 .CountAsync();
         }
 

@@ -28,7 +28,7 @@ namespace PharmaStock.Core.Services
             var balances = await _balanceRepo.GetByLocationAsync(locationId);
             var totalStockItems = balances.Count();
 
-            var allTransfers = await _transferRepo.GetAllAsync();
+            var allTransfers = await _transferRepo.GetAllWithDetailsAsync();
             var pendingIncoming = allTransfers.Count(t => t.ToLocationId == locationId && t.Status == 1);
 
             var todayDispenses = await _dispenseRepo.CountTodayByLocationAsync(locationId);
@@ -62,9 +62,10 @@ namespace PharmaStock.Core.Services
                 IncomingTransferSummary = recentTransfers.Select(t => new IncomingTransferSummaryDTO
                 {
                     TransferOrderId = t.TransferOrderId,
-                    FromLocation = t.FromLocation?.Name,
-                    CreatedDate = t.CreatedDate,
-                    Status = t.StatusNavigation?.Status
+                    FromLocation    = t.FromLocation?.Name,
+                    ItemCount       = t.TransferItems?.Count ?? 0,
+                    CreatedDate     = t.CreatedDate,
+                    Status          = t.StatusNavigation?.Status
                 }).ToList()
             };
         }

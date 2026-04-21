@@ -39,7 +39,7 @@ namespace PharmaStock.Core.Services
                 Quantity = dto.Quantity,
                 Destination = dto.Destination,
                 DispenseDate = DateTime.UtcNow,
-                Status = false
+                Status = true   // true = Dispensed
             };
             await _repo.AddAsync(entity);
             var created = await _repo.GetByIdWithDetailsAsync(entity.DispenseRefId);

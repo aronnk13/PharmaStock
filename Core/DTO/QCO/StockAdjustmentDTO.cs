@@ -8,6 +8,7 @@ namespace PharmaStock.Core.DTO.QCO
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public int InventoryLotId { get; set; }
+        public int? BatchNumber { get; set; }
         public int QuantityDelta { get; set; }
         public int ReasonCode { get; set; }
         public string? ReasonDescription { get; set; }

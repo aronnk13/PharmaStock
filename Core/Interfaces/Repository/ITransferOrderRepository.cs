@@ -15,5 +15,6 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<bool> IsTransferOrderValidAsync(int transferOrderId);
         Task<IEnumerable<TransferItem>> GetItemsByTransferOrderIdAsync(int transferOrderId);
         Task<IEnumerable<TransferOrder>> GetByFilterAsync(TransferOrderFilterDTO filter);
+        Task<IEnumerable<TransferOrder>> GetAllWithDetailsAsync();
     }
 }

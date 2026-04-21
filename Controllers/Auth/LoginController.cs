@@ -19,37 +19,30 @@ namespace PharmaStock.Controllers.Auth
         public async Task<IActionResult> Login([FromBody] LoginDTO request)
         {
             if (request == null)
-                return BadRequest(new { message = "Invalid Client Request" });
+                return BadRequest(new { message = "Invalid request body." });
+
             try
             {
                 var response = await _authService.LoginAsync(request);
-                return Ok(response);
+                return Ok(new
+                {
+                    token  = response.Token,
+                    userId = response.UserId,
+                    role   = response.Role
+                });
             }
             catch (UnauthorizedAccessException ex) when (ex.Message == "INVALID_USERNAME")
             {
-                return Unauthorized(new { message = "Invalid Username." });
+                return Unauthorized(new { message = "Invalid username." });
             }
             catch (UnauthorizedAccessException ex) when (ex.Message == "INVALID_PASSWORD")
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Username),
-            new Claim("userId", user.UserId.ToString()),
-            new Claim(ClaimTypes.Role, user.Role.RoleType),
-            new Claim("role", user.Role.RoleType)
-            };
-
-            var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Issuer"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+                return Unauthorized(new { message = "Invalid password." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

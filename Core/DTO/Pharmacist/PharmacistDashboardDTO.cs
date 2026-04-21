@@ -23,6 +23,7 @@ namespace PharmaStock.Core.DTO.Pharmacist
     {
         public int TransferOrderId { get; set; }
         public string? FromLocation { get; set; }
+        public int ItemCount { get; set; }
         public DateTime CreatedDate { get; set; }
         public string? Status { get; set; }
     }

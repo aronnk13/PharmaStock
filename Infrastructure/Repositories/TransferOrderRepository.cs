@@ -47,5 +47,16 @@ namespace PharmaStock.Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+
+        public async Task<IEnumerable<TransferOrder>> GetAllWithDetailsAsync()
+        {
+            return await _context.TransferOrders
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .Include(t => t.StatusNavigation)
+                .Include(t => t.TransferItems)
+                .OrderByDescending(t => t.CreatedDate)
+                .ToListAsync();
+        }
     }
 }
