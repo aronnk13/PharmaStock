@@ -67,7 +67,7 @@ namespace PharmaStock.Core.Services
                 Name = dto.Name,
                 LocationTypeId = dto.LocationTypeId,
                 ParentLocationId = dto.ParentLocationId,
-                StatusId = dto.StatusId
+                StatusId = dto.IsActive
             };
 
             var created = await _locationRepository.CreateLocation(location);
@@ -103,7 +103,7 @@ namespace PharmaStock.Core.Services
             existing.Name = dto.Name;
             existing.LocationTypeId = dto.LocationTypeId;
             existing.ParentLocationId = dto.ParentLocationId;
-            existing.StatusId = dto.StatusId;
+            existing.StatusId = dto.IsActive;
 
             var success = await _locationRepository.UpdateLocation(existing);
 
@@ -230,7 +230,7 @@ namespace PharmaStock.Core.Services
             Name = location.Name,
             LocationTypeId = location.LocationTypeId,
             ParentLocationId = location.ParentLocationId,
-            StatusId = location.StatusId
+            IsActive = location.StatusId
         };
     }
 }

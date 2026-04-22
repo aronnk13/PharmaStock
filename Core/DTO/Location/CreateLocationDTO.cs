@@ -15,6 +15,6 @@ namespace PharmaStock.Core.DTO.Location
         [Range(1, int.MaxValue, ErrorMessage = "Parent location ID must be greater than 0 if provided.")]
         public int? ParentLocationId { get; set; }
 
-        public bool StatusId { get; set; } = true;
+        public bool IsActive { get; set; } = true;
     }
 }

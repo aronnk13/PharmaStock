@@ -6,6 +6,6 @@ namespace PharmaStock.Core.DTO.Location
         public string Name { get; set; } = null!;
         public int LocationTypeId { get; set; }
         public int? ParentLocationId { get; set; }
-        public bool StatusId { get; set; }
+        public bool IsActive { get; set; }
     }
 }

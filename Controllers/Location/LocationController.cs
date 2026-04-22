@@ -82,6 +82,7 @@ namespace PharmaStock.Controllers.Location
                 return ex.Message switch
                 {
                     "LOCATION_DUPLICATE" => Conflict(new { errorCode = ex.Message, message = "A location with this name and type already exists." }),
+                    "LOCATION_TYPE_CHANGE_HAS_CHILDREN" => Conflict(new { errorCode = ex.Message, message = "Cannot change location type because this location has child locations." }),
                     "INVALID_LOCATION_TYPE" => BadRequest(new { errorCode = ex.Message, message = "Invalid location type." }),
                     "MAINSTORE_NO_PARENT" => BadRequest(new { errorCode = ex.Message, message = "MainStore cannot have a parent location." }),
                     "SUBSTORE_NEEDS_PARENT" => BadRequest(new { errorCode = ex.Message, message = "SubStore must have a parent MainStore." }),
