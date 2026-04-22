@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Pharmacist;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
@@ -14,11 +17,19 @@ namespace PharmaStock.Controllers.Pharmacist
     {
         private readonly IDispenseService _service;
         private readonly PharmaStockContext _context;
+        private readonly IAuditLogService _auditLogService;
 
-        public DispenseController(IDispenseService service, PharmaStockContext context)
+        public DispenseController(IDispenseService service, PharmaStockContext context, IAuditLogService auditLogService)
         {
             _service = service;
             _context = context;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpGet]
@@ -45,6 +56,15 @@ namespace PharmaStock.Controllers.Pharmacist
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var result = await _service.CreateAsync(dto);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "DISPENSE_CREATED",
+                Resource = $"Dispense:{result.DispenseRefId}",
+                Metadata = JsonSerializer.Serialize(result)
+            });
+
             return Ok(result);
         }
 

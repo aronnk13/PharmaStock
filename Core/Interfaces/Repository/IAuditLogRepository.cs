@@ -6,7 +6,7 @@ using PharmaStock.Core.DTO.Audit;
 using PharmaStock.Models;
 using Task = System.Threading.Tasks.Task;
 
-namespace PharmaStock.Core.Interfaces
+namespace PharmaStock.Core.Interfaces.Repository
 {
     public interface IAuditLogRepository
     {

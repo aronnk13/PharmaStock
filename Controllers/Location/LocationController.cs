@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Location;
 using PharmaStock.Core.Interfaces.Service;
 
@@ -11,10 +14,18 @@ namespace PharmaStock.Controllers.Location
     public class LocationController : ControllerBase
     {
         private readonly ILocationService _locationService;
+        private readonly IAuditLogService _auditLogService;
 
-        public LocationController(ILocationService locationService)
+        public LocationController(ILocationService locationService, IAuditLogService auditLogService)
         {
             _locationService = locationService;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpGet]
@@ -43,6 +54,15 @@ namespace PharmaStock.Controllers.Location
             try
             {
                 var created = await _locationService.CreateLocation(dto);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "LOCATION_CREATED",
+                    Resource = $"Location:{created.LocationId}",
+                    Metadata = JsonSerializer.Serialize(created)
+                });
+
                 return CreatedAtAction(nameof(GetById), new { id = created.LocationId }, created);
             }
             catch (InvalidOperationException ex)
@@ -77,6 +97,15 @@ namespace PharmaStock.Controllers.Location
                 var updated = await _locationService.UpdateLocation(dto);
                 if (!updated)
                     return NotFound(new { errorCode = "LOCATION_NOT_FOUND", message = $"Location with ID {id} not found." });
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "LOCATION_UPDATED",
+                    Resource = $"Location:{id}",
+                    Metadata = JsonSerializer.Serialize(dto)
+                });
+
                 return Ok(new { message = "Location updated successfully." });
             }
             catch (InvalidOperationException ex)
@@ -105,6 +134,15 @@ namespace PharmaStock.Controllers.Location
                 var deleted = await _locationService.DeleteLocation(id);
                 if (!deleted)
                     return NotFound(new { errorCode = "LOCATION_NOT_FOUND", message = $"Location with ID {id} not found." });
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "LOCATION_DELETED",
+                    Resource = $"Location:{id}",
+                    Metadata = JsonSerializer.Serialize(new { locationId = id })
+                });
+
                 return Ok(new { message = "Location deleted successfully." });
             }
             catch (InvalidOperationException ex)

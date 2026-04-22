@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Audit;
-using PharmaStock.Core.Interfaces;
+using PharmaStock.Core.Interfaces.Service;
 
 namespace PharmaStock.Controllers
 {

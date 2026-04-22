@@ -15,8 +15,6 @@ using PharmaStock.Core.Validators.Auth;
 using PharmaStock.Core.Validators.Location;
 using PharmaStock.Infrastructure.Services;
 using System.Security.Claims;
-using PharmaStock.Core.Interfaces.Service;
-using PharmaStock.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +107,8 @@ builder.Services.AddScoped<IDrugRepository, DrugRepository>();
 builder.Services.AddScoped<IDrugService, DrugService>();
 builder.Services.AddScoped<IPurchaseItemRepository, PurchaseItemRepository>();
 builder.Services.AddScoped<IPurchaseItemService, PurchaseItemService>();
+builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
 

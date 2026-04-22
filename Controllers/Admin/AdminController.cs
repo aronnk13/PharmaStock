@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Register;
 using Microsoft.AspNetCore.Http;
 using PharmaStock.Core.Interfaces.Service;
@@ -12,10 +15,18 @@ namespace PharmaStock.Controllers.Admin
     public class AdminController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IAuditLogService _auditLogService;
 
-        public AdminController(IUserService userService)
+        public AdminController(IUserService userService, IAuditLogService auditLogService)
         {
             _userService = userService;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpPost("UpsertUser")]
@@ -30,7 +41,17 @@ namespace PharmaStock.Controllers.Admin
             var response = await _userService.UpsertUser(upsertUserDTO);
 
             if (response.IsSuccess)
+            {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "USER_UPSERTED",
+                    Resource = $"User:{upsertUserDTO.Username}",
+                    Metadata = JsonSerializer.Serialize(new { username = upsertUserDTO.Username, message = response.Message })
+                });
+
                 return Ok(new { message = response.Message });
+            }
 
             return BadRequest(new { error = response.Message });
         }

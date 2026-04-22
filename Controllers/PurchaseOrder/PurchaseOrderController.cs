@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.PurchaseOrder;
 using PharmaStock.Core.Interfaces.Service;
 
@@ -11,10 +14,18 @@ namespace PharmaStock.Controllers.PurchaseOrder
     public class PurchaseOrderController : ControllerBase
     {
         private readonly IPurchaseOrderService _service;
+        private readonly IAuditLogService _auditLogService;
 
-        public PurchaseOrderController(IPurchaseOrderService service)
+        public PurchaseOrderController(IPurchaseOrderService service, IAuditLogService auditLogService)
         {
             _service = service;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpGet]
@@ -46,6 +57,15 @@ namespace PharmaStock.Controllers.PurchaseOrder
             try
             {
                 var result = await _service.CreateAsync(dto);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "PURCHASE_ORDER_CREATED",
+                    Resource = $"PurchaseOrder:{result.PurchaseOrderId}",
+                    Metadata = JsonSerializer.Serialize(result)
+                });
+
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -64,6 +84,15 @@ namespace PharmaStock.Controllers.PurchaseOrder
             try
             {
                 var result = await _service.UpdateAsync(id, dto);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "PURCHASE_ORDER_UPDATED",
+                    Resource = $"PurchaseOrder:{id}",
+                    Metadata = JsonSerializer.Serialize(new { old = dto, @new = result })
+                });
+
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)
@@ -82,6 +111,15 @@ namespace PharmaStock.Controllers.PurchaseOrder
             try
             {
                 await _service.DeleteAsync(id);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "PURCHASE_ORDER_DELETED",
+                    Resource = $"PurchaseOrder:{id}",
+                    Metadata = JsonSerializer.Serialize(new { purchaseOrderId = id })
+                });
+
                 return Ok(new { message = "Purchase order deleted successfully." });
             }
             catch (KeyNotFoundException ex)

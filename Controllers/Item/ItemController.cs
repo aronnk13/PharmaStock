@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Item;
 using PharmaStock.Core.Interfaces.Service;
 
@@ -11,10 +14,18 @@ namespace PharmaStock.Controllers.Item
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
+        private readonly IAuditLogService _auditLogService;
 
-        public ItemController(IItemService itemService)
+        public ItemController(IItemService itemService, IAuditLogService auditLogService)
         {
             _itemService = itemService;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpPost]
@@ -29,6 +40,15 @@ namespace PharmaStock.Controllers.Item
             try
             {
                 var result = await _itemService.CreateAsync(request);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "ITEM_CREATED",
+                    Resource = $"Item:{result.ItemId}",
+                    Metadata = JsonSerializer.Serialize(result)
+                });
+
                 return CreatedAtAction(nameof(GetItemById), new { itemId = result.ItemId }, result);
             }
             catch (Exception ex)
@@ -77,6 +97,15 @@ namespace PharmaStock.Controllers.Item
             try
             {
                 await _itemService.UpdateAsync(itemId, request);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "ITEM_UPDATED",
+                    Resource = $"Item:{itemId}",
+                    Metadata = JsonSerializer.Serialize(request)
+                });
+
                 return Ok(new { message = "Item updated successfully." });
             }
             catch (KeyNotFoundException)
@@ -101,7 +130,17 @@ namespace PharmaStock.Controllers.Item
             var response = await _itemService.DeleteAsync(itemId);
 
             if (response.IsDeleted)
+            {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "ITEM_DELETED",
+                    Resource = $"Item:{itemId}",
+                    Metadata = JsonSerializer.Serialize(new { itemId })
+                });
+
                 return Ok(new { message = response.Message });
+            }
 
             return NotFound(new { message = response.Message });
         }

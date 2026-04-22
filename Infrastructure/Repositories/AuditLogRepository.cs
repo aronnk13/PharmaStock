@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PharmaStock.Core.DTO.Audit;
-using PharmaStock.Core.Interfaces;
+using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Models;
 
 namespace PharmaStock.Infrastructure.Repositories

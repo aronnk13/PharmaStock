@@ -1,7 +1,11 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Pharmacist;
+using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
 
 namespace PharmaStock.Controllers.Pharmacist
@@ -12,7 +16,19 @@ namespace PharmaStock.Controllers.Pharmacist
     public class PharmacistTransferController : ControllerBase
     {
         private readonly PharmaStockContext _context;
-        public PharmacistTransferController(PharmaStockContext context) => _context = context;
+        private readonly IAuditLogService _auditLogService;
+
+        public PharmacistTransferController(PharmaStockContext context, IAuditLogService auditLogService)
+        {
+            _context = context;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
+        }
 
         [HttpGet("incoming")]
         public async Task<IActionResult> GetIncoming([FromQuery] int locationId)
@@ -60,6 +76,15 @@ namespace PharmaStock.Controllers.Pharmacist
             if (transfer == null) return NotFound();
             transfer.Status = 2;
             await _context.SaveChangesAsync();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "TRANSFER_CONFIRMED",
+                Resource = $"TransferOrder:{id}",
+                Metadata = JsonSerializer.Serialize(new { transferOrderId = id })
+            });
+
             return Ok(new { success = true });
         }
     }

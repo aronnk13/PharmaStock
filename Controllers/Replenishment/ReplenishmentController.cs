@@ -1,6 +1,9 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Replenishment;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
@@ -14,11 +17,19 @@ namespace PharmaStock.Controllers.Replenishment
     {
         private readonly IReplenishmentService _service;
         private readonly PharmaStockContext _context;
+        private readonly IAuditLogService _auditLogService;
 
-        public ReplenishmentController(IReplenishmentService service, PharmaStockContext context)
+        public ReplenishmentController(IReplenishmentService service, PharmaStockContext context, IAuditLogService auditLogService)
         {
             _service = service;
             _context = context;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         /// <summary>Returns items with their drug names for use in dropdowns.</summary>
@@ -67,6 +78,15 @@ namespace PharmaStock.Controllers.Replenishment
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var result = await _service.CreateRequestAsync(dto);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "REPLENISHMENT_REQUEST_CREATED",
+                Resource = $"ReplenishmentRequest:{result.ReplenishmentRequestId}",
+                Metadata = JsonSerializer.Serialize(result)
+            });
+
             return Ok(result);
         }
 
@@ -74,7 +94,17 @@ namespace PharmaStock.Controllers.Replenishment
         public async Task<IActionResult> UpdateStatus(int id, [FromQuery] int status)
         {
             var success = await _service.UpdateRequestStatusAsync(id, status);
-            return success ? Ok(new { success = true }) : NotFound();
+            if (!success) return NotFound();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "REPLENISHMENT_REQUEST_STATUS_UPDATED",
+                Resource = $"ReplenishmentRequest:{id}",
+                Metadata = JsonSerializer.Serialize(new { replenishmentRequestId = id, status })
+            });
+
+            return Ok(new { success = true });
         }
 
         [HttpGet("rules")]
