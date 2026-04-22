@@ -29,10 +29,10 @@ namespace PharmaStock.Core.Services
                 GenericName = drugModel.GenericName,
                 BrandName = drugModel.BrandName,
                 Strength = drugModel.Strength,
-                Form = drugModel.Form,
+                FormId = drugModel.Form,
                 Atccode = drugModel.Atccode,
-                ControlClass = drugModel.ControlClass,
-                StorageClass = drugModel.StorageClass,
+                ControlClassId = drugModel.ControlClass,
+                StorageClassId = drugModel.StorageClass,
                 Status = drugModel.Status
             };
         }
@@ -40,18 +40,6 @@ namespace PharmaStock.Core.Services
         public async Task<PaginatedResult<GetDrugDTO>> GetPaginatedResult(DrugFilterDTO filter)
         {
             var (drugs, totalCount) = await _drugRepository.GetDrugsByFilterAsync(filter);
-            var dtoList = drugs.Select(a => new GetDrugDTO
-            {
-                DrugId = a.DrugId,
-                GenericName = a.GenericName,
-                BrandName = a.BrandName,
-                Strength = a.Strength,
-                Form = a.Form,
-                Atccode = a.Atccode,
-                ControlClass = a.ControlClass,
-                StorageClass = a.StorageClass,
-                Status = a.Status
-            }).ToList();
             return new PaginatedResult<GetDrugDTO>
             {
                 Items = drugs,

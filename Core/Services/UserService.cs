@@ -44,7 +44,7 @@ namespace PharmaStock.Core.Services
                         CreatedOn = DateTime.UtcNow,
                         UpdatedBy = upsertUserDTO.AdminName,
                         UpdatedOn = DateTime.UtcNow,
-                        StatusId = true,
+                        StatusId = upsertUserDTO.StatusId,
                     };
                     await _userRepository.AddAsync(user);
 
@@ -62,7 +62,7 @@ namespace PharmaStock.Core.Services
                     existingUser.Email = upsertUserDTO.Email;
                     existingUser.Phone = upsertUserDTO.Phone;
                     existingUser.RoleId = upsertUserDTO.RoleId;
-
+                    existingUser.StatusId = upsertUserDTO.StatusId;
                     existingUser.UpdatedBy = upsertUserDTO.AdminName;
                     existingUser.UpdatedOn = DateTime.UtcNow;
 

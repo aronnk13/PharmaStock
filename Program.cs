@@ -124,7 +124,6 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
 builder.Services.AddTransient<IAuditLogRepository, AuditLogRepository>();
-builder.Services.AddDbContext<PharmaStockContext>();
 
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IVendorService, VendorService>();

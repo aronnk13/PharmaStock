@@ -6,10 +6,13 @@ namespace PharmaStock.Core.DTO.Drug
         public string GenericName { get; set; }
         public string BrandName { get; set; }
         public string Strength { get; set; }
-        public int Form { get; set; }
+        public int FormId { get; set; }
+        public string? FormName { get; set; }
         public string Atccode { get; set; }
-        public int ControlClass { get; set; }
-        public int StorageClass { get; set; }
+        public int ControlClassId { get; set; }
+        public string? ControlClassName { get; set; }
+        public int StorageClassId { get; set; }
+        public string? StorageClassName { get; set; }
         public bool Status { get; set; }
     }
 }
