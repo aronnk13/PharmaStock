@@ -37,6 +37,11 @@ namespace PharmaStock.Core.DTO.Register
         public string AdminName { get; set; }
 
         /// <summary>
+        /// Whether the user account is active.
+        /// </summary>
+        public bool IsActive { get; set; } = true;
+
+        /// <summary>
         /// Flag indicating whether this is a new user creation (true) or an update (false).
         /// </summary>
         public bool IsCreate { get; set; }
