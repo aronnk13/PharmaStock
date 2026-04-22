@@ -45,14 +45,12 @@ namespace PharmaStock.Controllers.Vendor
             return Ok(await _vendorService.GetAllAsync(includeInactive, name));
         }
 
-  
         [HttpPut("update/{vendorId}")]
         public async Task<IActionResult> Update(int vendorId, VendorDTO dto)
         {
             await _vendorService.UpdateAsync(vendorId, dto);
             return Ok(new { success = true });
         }
-
 
         [HttpDelete("{vendorId}")]
         public async Task<IActionResult> Delete(int vendorId)

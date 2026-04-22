@@ -1,5 +1,8 @@
+using System.Text.Json;
 using pharmaStock.Core.DTO.Item;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Item;
+using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
@@ -10,11 +13,18 @@ namespace PharmaStock.Core.Services
     public class ItemService : IItemService
     {
         private readonly IItemRepository _itemRepository;
+        private readonly IAuditLogService _auditLogService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ItemService(IItemRepository itemRepository)
+        public ItemService(IItemRepository itemRepository, IAuditLogService auditLogService, IHttpContextAccessor httpContextAccessor)
         {
             _itemRepository = itemRepository;
+            _auditLogService = auditLogService;
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        private int GetCurrentUserId() =>
+            int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("userId")?.Value, out var id) ? id : 0;
 
         public async Task<GetItemDTO> CreateAsync(ItemDTO request)
         {
@@ -29,17 +39,48 @@ namespace PharmaStock.Core.Services
             };
 
             await _itemRepository.AddAsync(item);
-            return await _itemRepository.GetItemDtoByIdAsync(item.ItemId)!;
+            var result = await _itemRepository.GetItemDtoByIdAsync(item.ItemId)!;
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "ITEM_CREATED",
+                Resource = $"Item:{item.ItemId}",
+                Metadata = JsonSerializer.Serialize(result)
+            });
+
+            return result;
         }
 
         public async Task<GetItemDTO?> GetByIdAsync(int itemId)
         {
-            return await _itemRepository.GetItemDtoByIdAsync(itemId);
+            var result = await _itemRepository.GetItemDtoByIdAsync(itemId);
+            if (result == null) return null;
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "ITEM_VIEWED",
+                Resource = $"Item:{itemId}",
+                Metadata = null
+            });
+
+            return result;
         }
 
         public async Task<List<GetItemDTO>> GetAllAsync()
         {
-            return await _itemRepository.GetAllAsync();
+            var result = await _itemRepository.GetAllAsync();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "ITEM_LIST_VIEWED",
+                Resource = "Item:list",
+                Metadata = null
+            });
+
+            return result;
         }
 
         public async Task UpdateAsync(int itemId, ItemDTO request)
@@ -56,11 +97,32 @@ namespace PharmaStock.Core.Services
             item.Status = request.Status;
 
             await _itemRepository.UpdateAsync(item);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "ITEM_UPDATED",
+                Resource = $"Item:{itemId}",
+                Metadata = JsonSerializer.Serialize(request)
+            });
         }
 
         public async Task<ItemDeletedResponseDTO> DeleteAsync(int itemId)
         {
-            return await _itemRepository.DeleteItem(itemId);
+            var response = await _itemRepository.DeleteItem(itemId);
+
+            if (response.IsDeleted)
+            {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "ITEM_DELETED",
+                    Resource = $"Item:{itemId}",
+                    Metadata = null
+                });
+            }
+
+            return response;
         }
     }
 }

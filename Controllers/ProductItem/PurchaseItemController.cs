@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Item;
@@ -14,18 +10,19 @@ namespace PharmaStock.Controllers.ProductItem
     [Authorize]
     public class PurchaseItemController : ControllerBase
     {
-        private readonly IPurchaseItemService service;
-        public PurchaseItemController(IPurchaseItemService _service)
+        private readonly IPurchaseItemService _service;
+
+        public PurchaseItemController(IPurchaseItemService service)
         {
-            service = _service;
+            _service = service;
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAllPurchaseItems()
         {
             try
             {
-                var res = await service.GetAllPIAsync();
-                return Ok(res);
+                return Ok(await _service.GetAllPIAsync());
             }
             catch (Exception ex)
             {
@@ -33,14 +30,12 @@ namespace PharmaStock.Controllers.ProductItem
             }
         }
 
-        [HttpPost]
-        [Route("create")]
+        [HttpPost("create")]
         public async Task<IActionResult> CreatePurchaseItem(CreatePurchaseItemDTO dto)
         {
             try
             {
-                var res = await service.AddPIAsync(dto);
-                return Ok(res);
+                return Ok(await _service.AddPIAsync(dto));
             }
             catch (Exception ex)
             {
@@ -48,14 +43,12 @@ namespace PharmaStock.Controllers.ProductItem
             }
         }
 
-        [HttpPut]
-        [Route("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePurchaseItem(int id, UpdatePurchaseItemDTO dto)
         {
             try
             {
-                var res = await service.UpdatePIAsync(id, dto);
-                return Ok(res);
+                return Ok(await _service.UpdatePIAsync(id, dto));
             }
             catch (Exception ex)
             {
@@ -63,23 +56,17 @@ namespace PharmaStock.Controllers.ProductItem
             }
         }
 
-        [HttpDelete]
-        [Route("{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePurchaseItem(int id)
         {
             try
             {
-                await service.DeletePIAsync(id);
-                return Ok("PurchaseItem deleted successfully");
+                await _service.DeletePIAsync(id);
+                return Ok(new { message = "PurchaseItem deleted successfully." });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    message = ex.Message,
-                    inner = ex.InnerException?.Message,
-                    stack = ex.StackTrace
-                });
+                return BadRequest(new { message = ex.Message, inner = ex.InnerException?.Message });
             }
         }
     }

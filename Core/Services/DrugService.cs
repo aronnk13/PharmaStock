@@ -1,7 +1,10 @@
-using PharmaStock.Core.DTO.Auth;
+using System.Text.Json;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Common;
+using PharmaStock.Core.DTO.Auth;
 using PharmaStock.Core.DTO.Drug;
 using PharmaStock.Core.Interfaces;
+using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
 
@@ -10,36 +13,47 @@ namespace PharmaStock.Core.Services
     public class DrugService : IDrugService
     {
         private readonly IDrugRepository _drugRepository;
+        private readonly IAuditLogService _auditLogService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public DrugService(IDrugRepository drugRepository)
+        public DrugService(IDrugRepository drugRepository, IAuditLogService auditLogService, IHttpContextAccessor httpContextAccessor)
         {
             _drugRepository = drugRepository;
+            _auditLogService = auditLogService;
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        private int GetCurrentUserId() =>
+            int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("userId")?.Value, out var id) ? id : 0;
 
         public async Task<GetDrugDTO?> GetDrugbyid(int id)
         {
-            var drugModel = await _drugRepository.GetByIdAsync(id);
-            if (drugModel == null)
+            var result = await _drugRepository.GetDrugDtoByIdAsync(id);
+            if (result == null) return null;
+
+            await _auditLogService.CreateLogAsync(new AuditDto
             {
-                return null;
-            }
-            return new GetDrugDTO
-            {
-                DrugId = drugModel.DrugId,
-                GenericName = drugModel.GenericName,
-                BrandName = drugModel.BrandName,
-                Strength = drugModel.Strength,
-                FormId = drugModel.Form,
-                Atccode = drugModel.Atccode,
-                ControlClassId = drugModel.ControlClass,
-                StorageClassId = drugModel.StorageClass,
-                Status = drugModel.Status
-            };
+                UserId = GetCurrentUserId(),
+                Action = "DRUG_VIEWED",
+                Resource = $"Drug:{id}",
+                Metadata = null
+            });
+
+            return result;
         }
 
         public async Task<PaginatedResult<GetDrugDTO>> GetPaginatedResult(DrugFilterDTO filter)
         {
             var (drugs, totalCount) = await _drugRepository.GetDrugsByFilterAsync(filter);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "DRUG_LIST_VIEWED",
+                Resource = "Drug:list",
+                Metadata = null
+            });
+
             return new PaginatedResult<GetDrugDTO>
             {
                 Items = drugs,
@@ -51,12 +65,10 @@ namespace PharmaStock.Core.Services
 
         public async Task<GetDrugDTO> CreateDrug(CreateDrugDTO request)
         {
-            // 1. Duplicate check
             var isDuplicate = await _drugRepository.IsDrugExists(request.GenericName, request.Strength, request.Form);
             if (isDuplicate)
                 throw new InvalidOperationException("DRUG_DUPLICATE");
 
-            // 2. Map DTO → Entity
             var drug = new Drug
             {
                 GenericName = request.GenericName,
@@ -71,22 +83,28 @@ namespace PharmaStock.Core.Services
 
             await _drugRepository.AddAsync(drug);
 
-            return await _drugRepository.GetDrugDtoByIdAsync(drug.DrugId)!;
+            var result = await _drugRepository.GetDrugDtoByIdAsync(drug.DrugId)!;
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "DRUG_CREATED",
+                Resource = $"Drug:{drug.DrugId}",
+                Metadata = JsonSerializer.Serialize(result)
+            });
+
+            return result;
         }
 
         public async Task<bool> UpdateDrug(int drugId, UpdateDrugDTO request)
         {
-            // 1. Verify drug exists
             var existing = await _drugRepository.GetByIdAsync(drugId);
             if (existing == null) return false;
 
-            // 2. Duplicate check (exclude self)
-            var isDuplicate = await _drugRepository.IsDrugExists(
-                request.GenericName, request.Strength, request.Form, drugId);
+            var isDuplicate = await _drugRepository.IsDrugExists(request.GenericName, request.Strength, request.Form, drugId);
             if (isDuplicate)
                 throw new InvalidOperationException("DRUG_DUPLICATE");
 
-            // 3. Map properties
             existing.GenericName = request.GenericName;
             existing.BrandName = request.BrandName;
             existing.Strength = request.Strength;
@@ -96,12 +114,38 @@ namespace PharmaStock.Core.Services
             existing.StorageClass = request.StorageClass;
             existing.Status = request.Status;
 
-            return await _drugRepository.UpdateAsync(existing);
+            var success = await _drugRepository.UpdateAsync(existing);
+
+            if (success)
+            {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "DRUG_UPDATED",
+                    Resource = $"Drug:{drugId}",
+                    Metadata = JsonSerializer.Serialize(request)
+                });
+            }
+
+            return success;
         }
 
         public async Task<DrugDeletedResponseDTO> DeleteDrug(int drugId)
         {
-            return await _drugRepository.DeleteDrug(drugId);
+            var response = await _drugRepository.DeleteDrug(drugId);
+
+            if (response.IsDeleted)
+            {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "DRUG_DELETED",
+                    Resource = $"Drug:{drugId}",
+                    Metadata = null
+                });
+            }
+
+            return response;
         }
     }
 }

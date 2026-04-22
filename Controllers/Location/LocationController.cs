@@ -20,8 +20,7 @@ namespace PharmaStock.Controllers.Location
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var locations = await _locationService.GetLocations();
-            return Ok(locations);
+            return Ok(await _locationService.GetLocations());
         }
 
         [HttpGet("{id}")]
@@ -68,7 +67,6 @@ namespace PharmaStock.Controllers.Location
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
             if (id != dto.LocationId)
                 return BadRequest(new { message = "Route ID does not match body LocationId." });
 
@@ -121,8 +119,7 @@ namespace PharmaStock.Controllers.Location
         [HttpGet("types")]
         public async Task<IActionResult> GetAllLocationTypes()
         {
-            var types = await _locationService.GetAllLocationTypes();
-            return Ok(types);
+            return Ok(await _locationService.GetAllLocationTypes());
         }
 
         [HttpGet("types/{id}")]

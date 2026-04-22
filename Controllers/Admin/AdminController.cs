@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO.Register;
-using Microsoft.AspNetCore.Http;
 using PharmaStock.Core.Interfaces.Service;
 
 namespace PharmaStock.Controllers.Admin
@@ -21,7 +20,6 @@ namespace PharmaStock.Controllers.Admin
         [HttpPost("UpsertUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpsertUserAsync([FromBody] UpsertUserDTO upsertUserDTO)
         {
             if (upsertUserDTO == null)
@@ -34,8 +32,6 @@ namespace PharmaStock.Controllers.Admin
 
             return BadRequest(new { error = response.Message });
         }
-
-        // ── Users ────────────────────────────────────────────────────────────
 
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
@@ -52,8 +48,6 @@ namespace PharmaStock.Controllers.Admin
                 return NotFound(new { errorCode = "USER_NOT_FOUND", message = $"User with ID {id} not found." });
             return Ok(user);
         }
-
-        // ── Roles ─────────────────────────────────────────────────────────────
 
         [HttpGet("roles")]
         public async Task<IActionResult> GetAllRoles()

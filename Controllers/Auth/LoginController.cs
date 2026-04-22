@@ -20,6 +20,7 @@ namespace PharmaStock.Controllers.Auth
         {
             if (request == null)
                 return BadRequest(new { message = "Invalid Client Request" });
+
             try
             {
                 var response = await _authService.LoginAsync(request);

@@ -1,8 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using Microsoft.IdentityModel.Tokens;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Auth;
+using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
@@ -13,33 +16,42 @@ namespace PharmaStock.Core.Services
     {
         private readonly IAuthRepository _authRepository;
         private readonly IConfiguration _configuration;
+        private readonly IAuditLogService _auditLogService;
 
-        public AuthService(IAuthRepository authRepository, IConfiguration configuration)
+        public AuthService(IAuthRepository authRepository, IConfiguration configuration, IAuditLogService auditLogService)
         {
             _authRepository = authRepository;
             _configuration = configuration;
+            _auditLogService = auditLogService;
         }
 
         public async Task<LoginResponseDTO> LoginAsync(LoginDTO dto)
         {
-            // 1. Fetch user with role from DB
             var user = await _authRepository.GetUserByUsernameAsync(dto.Username);
             if (user == null)
                 throw new UnauthorizedAccessException("INVALID_USERNAME");
 
-            // 2. Password check
             if (dto.Password != user.PasswordHash)
                 throw new UnauthorizedAccessException("INVALID_PASSWORD");
 
-            // 3. Generate JWT token
             var token = GenerateJwtToken(user);
 
-            return new LoginResponseDTO
+            var response = new LoginResponseDTO
             {
                 Token = token,
                 UserId = user.UserId,
                 Role = user.Role.RoleType
             };
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = user.UserId,
+                Action = "USER_LOGIN",
+                Resource = $"User:{user.UserId}",
+                Metadata = JsonSerializer.Serialize(new { user.UserId, Role = user.Role.RoleType })
+            });
+
+            return response;
         }
 
         private string GenerateJwtToken(User user)

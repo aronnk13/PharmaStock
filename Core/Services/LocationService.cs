@@ -1,4 +1,7 @@
+using System.Text.Json;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Location;
+using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Models;
@@ -8,32 +11,55 @@ namespace PharmaStock.Core.Services
     public class LocationService : ILocationService
     {
         private readonly ILocationRepository _locationRepository;
+        private readonly IAuditLogService _auditLogService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LocationService(ILocationRepository locationRepository)
+        public LocationService(ILocationRepository locationRepository, IAuditLogService auditLogService, IHttpContextAccessor httpContextAccessor)
         {
             _locationRepository = locationRepository;
+            _auditLogService = auditLogService;
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        private int GetCurrentUserId() =>
+            int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("userId")?.Value, out var id) ? id : 0;
 
         public async Task<GetLocationDTO?> GetLocationbyId(int id)
         {
             var location = await _locationRepository.GetLocationById(id);
             if (location == null) return null;
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "LOCATION_VIEWED",
+                Resource = $"Location:{id}",
+                Metadata = null
+            });
+
             return MapToGetDTO(location);
         }
 
         public async Task<IEnumerable<GetLocationDTO>> GetLocations()
         {
             var locations = await _locationRepository.GetLocations();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "LOCATION_LIST_VIEWED",
+                Resource = "Location:list",
+                Metadata = null
+            });
+
             return locations.Select(MapToGetDTO);
         }
 
         public async Task<GetLocationDTO> CreateLocation(CreateLocationDTO dto)
         {
-            // Duplicate check: same name + type combination
             var isDuplicate = await _locationRepository.IsLocationExists(dto.Name, dto.LocationTypeId);
             if (isDuplicate) throw new InvalidOperationException("LOCATION_DUPLICATE");
 
-            // Hierarchy validation
             await ValidateHierarchy(dto.LocationTypeId, dto.ParentLocationId);
 
             var location = new Location
@@ -45,20 +71,33 @@ namespace PharmaStock.Core.Services
             };
 
             var created = await _locationRepository.CreateLocation(location);
-            return MapToGetDTO(created);
+            var result = MapToGetDTO(created);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "LOCATION_CREATED",
+                Resource = $"Location:{created.LocationId}",
+                Metadata = JsonSerializer.Serialize(result)
+            });
+
+            return result;
         }
 
         public async Task<bool> UpdateLocation(UpdateLocationDTO dto)
         {
-            // Existence check
             var existing = await _locationRepository.GetLocationById(dto.LocationId);
             if (existing == null) return false;
 
-            // Duplicate check excluding the current record
             var isDuplicate = await _locationRepository.IsLocationExists(dto.Name, dto.LocationTypeId, dto.LocationId);
             if (isDuplicate) throw new InvalidOperationException("LOCATION_DUPLICATE");
 
-            // Hierarchy validation
+            if (existing.LocationTypeId != dto.LocationTypeId)
+            {
+                var hasChildren = await _locationRepository.HasChildLocations(dto.LocationId);
+                if (hasChildren) throw new InvalidOperationException("LOCATION_TYPE_CHANGE_HAS_CHILDREN");
+            }
+
             await ValidateHierarchy(dto.LocationTypeId, dto.ParentLocationId);
 
             existing.Name = dto.Name;
@@ -66,32 +105,85 @@ namespace PharmaStock.Core.Services
             existing.ParentLocationId = dto.ParentLocationId;
             existing.StatusId = dto.StatusId;
 
-            return await _locationRepository.UpdateLocation(existing);
+            var success = await _locationRepository.UpdateLocation(existing);
+
+            if (success)
+            {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "LOCATION_UPDATED",
+                    Resource = $"Location:{dto.LocationId}",
+                    Metadata = JsonSerializer.Serialize(dto)
+                });
+            }
+
+            return success;
         }
 
         public async Task<bool> DeleteLocation(int id)
         {
-            // Existence check
             var existing = await _locationRepository.GetLocationById(id);
             if (existing == null) return false;
 
-            // Type-aware child validation
             var typeName = await _locationRepository.GetLocationTypeName(existing.LocationTypeId);
 
             if (typeName == "MainStore")
             {
                 var hasSubStores = await _locationRepository.HasChildLocations(id);
-                if (hasSubStores)
-                    throw new InvalidOperationException("MAINSTORE_HAS_SUBSTORES");
+                if (hasSubStores) throw new InvalidOperationException("MAINSTORE_HAS_SUBSTORES");
             }
             else if (typeName == "SubStore")
             {
                 var hasChildLocations = await _locationRepository.HasChildLocations(id);
-                if (hasChildLocations)
-                    throw new InvalidOperationException("SUBSTORE_HAS_CHILD_LOCATIONS");
+                if (hasChildLocations) throw new InvalidOperationException("SUBSTORE_HAS_CHILD_LOCATIONS");
             }
 
-            return await _locationRepository.DeleteLocation(id);
+            var success = await _locationRepository.DeleteLocation(id);
+
+            if (success)
+            {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "LOCATION_DELETED",
+                    Resource = $"Location:{id}",
+                    Metadata = null
+                });
+            }
+
+            return success;
+        }
+
+        public async Task<IEnumerable<GetLocationTypeDTO>> GetAllLocationTypes()
+        {
+            var types = await _locationRepository.GetAllLocationTypesAsync();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "LOCATION_TYPE_LIST_VIEWED",
+                Resource = "LocationType:list",
+                Metadata = null
+            });
+
+            return types.Select(t => new GetLocationTypeDTO { LocationTypeId = t.LocationTypeId, Type = t.Type });
+        }
+
+        public async Task<GetLocationTypeDTO?> GetLocationTypeById(int id)
+        {
+            var type = await _locationRepository.GetLocationTypeByIdAsync(id);
+            if (type == null) return null;
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "LOCATION_TYPE_VIEWED",
+                Resource = $"LocationType:{id}",
+                Metadata = null
+            });
+
+            return new GetLocationTypeDTO { LocationTypeId = type.LocationTypeId, Type = type.Type };
         }
 
         private async System.Threading.Tasks.Task ValidateHierarchy(int locationTypeId, int? parentLocationId)
@@ -117,9 +209,9 @@ namespace PharmaStock.Core.Services
                         throw new InvalidOperationException("SUBSTORE_PARENT_MUST_BE_MAINSTORE");
                     break;
 
-                case "OR":
-                case "ICU":
-                case "Ward":
+                default:
+                    // All types other than MainStore and SubStore (Ward, ICU, OR, Pharmacy, etc.)
+                    // must be placed directly under a SubStore
                     if (parentLocationId == null)
                         throw new InvalidOperationException("LOCATION_NEEDS_PARENT");
                     var parent = await _locationRepository.GetLocationById(parentLocationId.Value);
@@ -130,23 +222,6 @@ namespace PharmaStock.Core.Services
                         throw new InvalidOperationException("LOCATION_PARENT_MUST_BE_SUBSTORE");
                     break;
             }
-        }
-
-        public async Task<IEnumerable<GetLocationTypeDTO>> GetAllLocationTypes()
-        {
-            var types = await _locationRepository.GetAllLocationTypesAsync();
-            return types.Select(t => new GetLocationTypeDTO
-            {
-                LocationTypeId = t.LocationTypeId,
-                Type = t.Type
-            });
-        }
-
-        public async Task<GetLocationTypeDTO?> GetLocationTypeById(int id)
-        {
-            var type = await _locationRepository.GetLocationTypeByIdAsync(id);
-            if (type == null) return null;
-            return new GetLocationTypeDTO { LocationTypeId = type.LocationTypeId, Type = type.Type };
         }
 
         private static GetLocationDTO MapToGetDTO(Location location) => new GetLocationDTO

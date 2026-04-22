@@ -17,8 +17,7 @@ namespace PharmaStock.Controllers.Item
             _itemService = itemService;
         }
 
-        [HttpPost]
-        [Route("CreateItem")]
+        [HttpPost("CreateItem")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateItem([FromBody] ItemDTO request)
@@ -37,8 +36,7 @@ namespace PharmaStock.Controllers.Item
             }
         }
 
-        [HttpGet]
-        [Route("GetItemById/{itemId}")]
+        [HttpGet("GetItemById/{itemId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetItemById(int itemId)
@@ -53,8 +51,7 @@ namespace PharmaStock.Controllers.Item
             return Ok(item);
         }
 
-        [HttpGet]
-        [Route("GetAllItems")]
+        [HttpGet("GetAllItems")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllItems()
         {
@@ -62,15 +59,13 @@ namespace PharmaStock.Controllers.Item
             return Ok(items);
         }
 
-        [HttpPut]
-        [Route("UpdateItem/{itemId}")]
+        [HttpPut("UpdateItem/{itemId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateItem([FromRoute] int itemId, [FromBody] ItemDTO request)
         {
             if (request == null)
                 return BadRequest(new { message = "Request body is required." });
-
             if (itemId <= 0)
                 return BadRequest(new { message = "ItemId must be greater than 0." });
 
@@ -89,8 +84,7 @@ namespace PharmaStock.Controllers.Item
             }
         }
 
-        [HttpDelete]
-        [Route("DeleteItem/{itemId}")]
+        [HttpDelete("DeleteItem/{itemId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteItem([FromRoute] int itemId)

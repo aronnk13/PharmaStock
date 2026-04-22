@@ -1,10 +1,6 @@
-using System.Security.Claims;
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Bin;
-using PharmaStock.Core.Interfaces;
 using PharmaStock.Core.Interfaces.Service;
 
 namespace PharmaStock.Controllers.Bin
@@ -15,21 +11,13 @@ namespace PharmaStock.Controllers.Bin
     public class BinController : ControllerBase
     {
         private readonly IBinService _binService;
-        private readonly IAuditLogService _auditLogService;
-        public BinController(IBinService binService, IAuditLogService auditLogService)
+
+        public BinController(IBinService binService)
         {
             _binService = binService;
-            _auditLogService = auditLogService;
         }
 
-        private int GetCurrentUserId()
-        {
-            var claim = User.FindFirst("userId")?.Value;
-            return int.TryParse(claim, out var id) ? id : 0;
-        }
-
-        [HttpPost]
-        [Route("CreateBin")]
+        [HttpPost("CreateBin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -42,15 +30,6 @@ namespace PharmaStock.Controllers.Bin
             try
             {
                 var result = await _binService.CreateBinAsync(request);
-
-                await _auditLogService.CreateLogAsync(new AuditDto
-                {
-                    UserId = GetCurrentUserId(),
-                    Action = "BIN_CREATED",
-                    Resource = $"Bin:{result.BinId}",
-                    Metadata = JsonSerializer.Serialize(result)
-                });
-
                 return CreatedAtAction(nameof(GetBinById), new { binId = result.BinId }, result);
             }
             catch (KeyNotFoundException ex) when (ex.Message == "LOCATION_NOT_FOUND")
@@ -75,10 +54,9 @@ namespace PharmaStock.Controllers.Bin
             }
         }
 
-        [HttpGet]
-        [Route("GetBinById/{binId}")]
+        [HttpGet("GetBinById/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetBinById(int binId)
         {
             if (binId <= 0)
@@ -87,21 +65,18 @@ namespace PharmaStock.Controllers.Bin
             var bin = await _binService.GetBinByIdAsync(binId);
             if (bin == null)
                 return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
+
             return Ok(bin);
         }
-        
-        [HttpGet]
-        [Route("GetAllBins")]
+
+        [HttpGet("GetAllBins")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllBins([FromQuery] BinFilterDTO filter)
         {
-            var result = await _binService.GetAllBinsAsync(filter);
-            return Ok(result);
+            return Ok(await _binService.GetAllBinsAsync(filter));
         }
 
-        [HttpPut]
-        [Route("UpdateBin/{binId}")]
+        [HttpPut("UpdateBin/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -109,26 +84,12 @@ namespace PharmaStock.Controllers.Bin
         {
             if (request == null)
                 return BadRequest(new { message = "Request body is required." });
-
             if (binId <= 0)
                 return BadRequest(new { message = "BinId must be greater than 0." });
 
             try
             {
-                var oldBin = await _binService.GetBinByIdAsync(binId);
-                if (oldBin == null)
-                    return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
-
                 var result = await _binService.UpdateBinAsync(binId, request);
-
-                await _auditLogService.CreateLogAsync(new AuditDto
-                {
-                    UserId = GetCurrentUserId(),
-                    Action = "BIN_UPDATED",
-                    Resource = $"Bin:{binId}",
-                    Metadata = JsonSerializer.Serialize(new { old = oldBin, @new = result })
-                });
-
                 return Ok(new { message = "Bin updated successfully." });
             }
             catch (KeyNotFoundException ex) when (ex.Message == "BIN_NOT_FOUND")
@@ -161,8 +122,7 @@ namespace PharmaStock.Controllers.Bin
             }
         }
 
-        [HttpDelete]
-        [Route("DeleteBin/{binId}")]
+        [HttpDelete("DeleteBin/{binId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -173,20 +133,7 @@ namespace PharmaStock.Controllers.Bin
 
             try
             {
-                var oldBin = await _binService.GetBinByIdAsync(binId);
-                if (oldBin == null)
-                    return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
-
                 var result = await _binService.DeleteBinAsync(binId);
-
-                await _auditLogService.CreateLogAsync(new AuditDto
-                {
-                    UserId = GetCurrentUserId(),
-                    Action = "BIN_DELETED",
-                    Resource = $"Bin:{binId}",
-                    Metadata = JsonSerializer.Serialize(new { old = oldBin, @new = result })
-                });
-
                 return Ok(new { message = "Bin deleted successfully." });
             }
             catch (KeyNotFoundException ex) when (ex.Message == "BIN_NOT_FOUND")
