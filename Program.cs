@@ -17,6 +17,8 @@ using PharmaStock.Infrastructure.Services;
 using System.Security.Claims;
 using PharmaStock.Core.Interfaces.Service;
 using PharmaStock.Core.Services;
+using PharmaStock.Middleware;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +34,19 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .SelectMany(e => e.Value!.Errors.Select(x => x.ErrorMessage))
+                .ToList();
+
+            return new BadRequestObjectResult(new { errorCode = "VALIDATION_ERROR", errors });
+        };
+    });
 builder.Services.AddFluentValidationAutoValidation();
 
 // Validator registration
@@ -182,6 +196,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
