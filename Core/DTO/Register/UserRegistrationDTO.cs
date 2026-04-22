@@ -39,7 +39,7 @@ namespace PharmaStock.Core.DTO.Register
         /// <summary>
         /// Whether the user account is active.
         /// </summary>
-        public bool StatusId { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
         /// <summary>
         /// Flag indicating whether this is a new user creation (true) or an update (false).

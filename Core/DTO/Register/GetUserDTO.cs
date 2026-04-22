@@ -8,7 +8,7 @@ namespace PharmaStock.Core.DTO.Register
         public string Phone { get; set; } = null!;
         public int RoleId { get; set; }
         public string RoleType { get; set; } = null!;
-        public bool StatusId { get; set; }
+        public bool IsActive { get; set; }
         public DateTime? CreatedOn { get; set; }
         public string CreatedBy { get; set; } = null!;
     }

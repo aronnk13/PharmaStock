@@ -15,10 +15,6 @@ using PharmaStock.Core.Validators.Auth;
 using PharmaStock.Core.Validators.Location;
 using PharmaStock.Infrastructure.Services;
 using System.Security.Claims;
-using PharmaStock.Core.Interfaces.Service;
-using PharmaStock.Core.Services;
-using PharmaStock.Middleware;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,19 +30,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers()
-    .ConfigureApiBehaviorOptions(options =>
-    {
-        options.InvalidModelStateResponseFactory = context =>
-        {
-            var errors = context.ModelState
-                .Where(e => e.Value?.Errors.Count > 0)
-                .SelectMany(e => e.Value!.Errors.Select(x => x.ErrorMessage))
-                .ToList();
-
-            return new BadRequestObjectResult(new { errorCode = "VALIDATION_ERROR", errors });
-        };
-    });
+builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 
 // Validator registration
@@ -189,15 +173,45 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// ── Global FluentValidation exception → 400 middleware ─────────────────────
+// When a validator calls ValidateAndThrowAsync, it throws ValidationException.
+// This middleware catches it and returns a proper 400 ValidationProblemDetails
+// so the Angular frontend can display field-level error messages.
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(context);
+    }
+    catch (FluentValidation.ValidationException ex)
+    {
+        context.Response.StatusCode = 400;
+        context.Response.ContentType = "application/json";
+
+        var errors = ex.Errors
+            .GroupBy(e => e.PropertyName)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(e => e.ErrorMessage).ToArray()
+            );
+
+        var problem = new Microsoft.AspNetCore.Mvc.ValidationProblemDetails(errors)
+        {
+            Status = 400,
+            Title = "Validation failed."
+        };
+
+        await context.Response.WriteAsJsonAsync(problem);
+    }
+});
+
 // 3. Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
