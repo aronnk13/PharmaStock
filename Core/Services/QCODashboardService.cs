@@ -10,17 +10,23 @@ namespace PharmaStock.Core.Services
         private readonly IRecallNoticeRepository _recallRepo;
         private readonly IStockAdjustmentRepository _adjustmentRepo;
         private readonly IExpiryWatchRepository _expiryRepo;
+        private readonly IColdChainLogRepository _coldChainRepo;
+        private readonly IAuditLogRepository _auditRepo;
 
         public QCODashboardService(
             IQuarantineRepository quarantineRepo,
             IRecallNoticeRepository recallRepo,
             IStockAdjustmentRepository adjustmentRepo,
-            IExpiryWatchRepository expiryRepo)
+            IExpiryWatchRepository expiryRepo,
+            IColdChainLogRepository coldChainRepo,
+            IAuditLogRepository auditRepo)
         {
             _quarantineRepo = quarantineRepo;
             _recallRepo = recallRepo;
             _adjustmentRepo = adjustmentRepo;
             _expiryRepo = expiryRepo;
+            _coldChainRepo = coldChainRepo;
+            _auditRepo = auditRepo;
         }
 
         public async Task<QCODashboardDTO> GetDashboardAsync()
@@ -31,6 +37,8 @@ namespace PharmaStock.Core.Services
             var nearExpiry = await _expiryRepo.GetNearExpiryAsync(30);
             var recentQuarantines = await _quarantineRepo.GetRecentAsync(5);
             var recentRecalls = await _recallRepo.GetRecentAsync(5);
+            var activeExcursions = await _coldChainRepo.CountActiveExcursionsAsync();
+            var auditEventsToday = await _auditRepo.CountTodayAsync();
 
             return new QCODashboardDTO
             {
@@ -38,6 +46,8 @@ namespace PharmaStock.Core.Services
                 OpenRecalls = openRecalls,
                 NearExpiryCount = nearExpiry.Count(),
                 RecentAdjustmentsCount = recentAdjustmentsCount,
+                ActiveExcursions = activeExcursions,
+                AuditEventsToday = auditEventsToday,
                 RecentQuarantines = recentQuarantines.Select(q => new RecentQuarantineDTO
                 {
                     QuarantaineActionId = q.QuarantaineActionId,

@@ -12,5 +12,6 @@ namespace PharmaStock.Core.Interfaces.Repository
     {
         Task<AuditLog> AddAsync(Audit log);
         Task<List<GetAuditDTO>> GetAllAsync();
+        Task<int> CountTodayAsync();
     }
 }

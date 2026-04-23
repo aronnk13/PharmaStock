@@ -22,6 +22,30 @@ namespace PharmaStock.Core.Services
             return item == null ? null : Map(item);
         }
 
+        public async Task<RecallNoticeDTO> CreateAsync(CreateRecallNoticeDTO dto)
+        {
+            var entity = new PharmaStock.Models.RecallNotice
+            {
+                DrugId = dto.DrugId,
+                NoticeDate = dto.NoticeDate,
+                Reason = dto.Reason,
+                Action = dto.Action,
+                Status = false  // false = Open
+            };
+            await _repo.AddAsync(entity);
+            var items = await _repo.GetAllWithDetailsAsync();
+            var full = items.FirstOrDefault(r => r.RecallNoticeId == entity.RecallNoticeId) ?? entity;
+            return Map(full);
+        }
+
+        public async Task<bool> CloseAsync(int id)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return false;
+            entity.Status = true;  // true = Closed
+            return await _repo.UpdateAsync(entity);
+        }
+
         private static RecallNoticeDTO Map(PharmaStock.Models.RecallNotice r) => new()
         {
             RecallNoticeId = r.RecallNoticeId,

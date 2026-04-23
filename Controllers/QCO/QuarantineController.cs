@@ -9,7 +9,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.QCO
 {
     [ApiController]
-    [Authorize(Roles = "QualityComplianceOfficer")]
+    [Authorize(Roles = "QualityOfficer")]
     [Route("api/quarantine")]
     public class QuarantineController : ControllerBase
     {

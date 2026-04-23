@@ -6,6 +6,8 @@ namespace PharmaStock.Core.DTO.QCO
         public int OpenRecalls { get; set; }
         public int NearExpiryCount { get; set; }
         public int RecentAdjustmentsCount { get; set; }
+        public int ActiveExcursions { get; set; }
+        public int AuditEventsToday { get; set; }
         public List<RecentQuarantineDTO> RecentQuarantines { get; set; } = new();
         public List<RecentRecallDTO> RecentRecalls { get; set; } = new();
     }

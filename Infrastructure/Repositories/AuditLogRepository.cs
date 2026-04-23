@@ -28,6 +28,15 @@ namespace PharmaStock.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async System.Threading.Tasks.Task<int> CountTodayAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+            return await pharmaStockContext.Audits
+                .Where(a => a.Timestamp >= today && a.Timestamp < tomorrow)
+                .CountAsync();
+        }
+
         public async Task<AuditLog> AddAsync(Audit log)
         {
             var res=new AuditLog();

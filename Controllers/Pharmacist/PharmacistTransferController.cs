@@ -31,9 +31,9 @@ namespace PharmaStock.Controllers.Pharmacist
         }
 
         [HttpGet("incoming")]
-        public async Task<IActionResult> GetIncoming([FromQuery] int locationId)
+        public async Task<IActionResult> GetIncoming([FromQuery] int? locationId)
         {
-            var transfers = await _context.TransferOrders
+            var query = _context.TransferOrders
                 .Include(t => t.FromLocation)
                 .Include(t => t.ToLocation)
                 .Include(t => t.StatusNavigation)
@@ -41,9 +41,12 @@ namespace PharmaStock.Controllers.Pharmacist
                     .ThenInclude(ti => ti.Item).ThenInclude(i => i.Drug)
                 .Include(t => t.TransferItems)
                     .ThenInclude(ti => ti.InventoryLot)
-                .Where(t => t.ToLocationId == locationId)
-                .OrderByDescending(t => t.CreatedDate)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (locationId.HasValue)
+                query = query.Where(t => t.ToLocationId == locationId.Value);
+
+            var transfers = await query.OrderByDescending(t => t.CreatedDate).ToListAsync();
 
             var result = transfers.Select(t => new IncomingTransferDTO
             {

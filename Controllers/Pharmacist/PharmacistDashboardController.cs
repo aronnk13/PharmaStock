@@ -13,7 +13,7 @@ namespace PharmaStock.Controllers.Pharmacist
         public PharmacistDashboardController(IPharmacistDashboardService service) => _service = service;
 
         [HttpGet("stats")]
-        public async Task<IActionResult> GetStats([FromQuery] int locationId = 1)
+        public async Task<IActionResult> GetStats([FromQuery] int? locationId = null)
         {
             var result = await _service.GetDashboardAsync(locationId);
             return Ok(result);

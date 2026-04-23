@@ -116,6 +116,10 @@ public partial class PharmaStockContext : DbContext
 
     public virtual DbSet<Vendor> Vendors { get; set; }
 
+    public virtual DbSet<ColdChainLog> ColdChainLogs { get; set; }
+
+    public virtual DbSet<PutAwayTask> PutAwayTasks { get; set; }
+
     // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //     => optionsBuilder.UseSqlServer("Server=LTIN718562\\SQLEXPRESS;Initial Catalog=PHARMASTOCK;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;Integrated Security=True");
     
@@ -1198,6 +1202,55 @@ public partial class PharmaStockContext : DbContext
             entity.Property(e => e.StatusId)
                 .HasDefaultValue(true)
                 .HasColumnName("StatusID");
+        });
+
+        modelBuilder.Entity<ColdChainLog>(entity =>
+        {
+            entity.HasKey(e => e.LogId).HasName("PK__ColdChainLog__LogID");
+
+            entity.ToTable("ColdChainLog");
+
+            entity.Property(e => e.LogId).HasColumnName("LogID");
+            entity.Property(e => e.LocationId).HasColumnName("LocationID");
+            entity.Property(e => e.SensorId)
+                .HasMaxLength(50)
+                .HasColumnName("SensorID");
+            entity.Property(e => e.Timestamp)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.TemperatureC)
+                .HasColumnType("decimal(5,2)");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20);
+
+            entity.HasOne(d => d.Location).WithMany()
+                .HasForeignKey(d => d.LocationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CCLog_Location");
+        });
+
+        modelBuilder.Entity<PutAwayTask>(entity =>
+        {
+            entity.HasKey(e => e.TaskId).HasName("PK__PutAwayTask__TaskID");
+
+            entity.ToTable("PutAwayTask");
+
+            entity.Property(e => e.TaskId).HasColumnName("TaskID");
+            entity.Property(e => e.GrnItemId).HasColumnName("GRNItemID");
+            entity.Property(e => e.TargetBinId).HasColumnName("TargetBinID");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("Pending");
+
+            entity.HasOne(d => d.GrnItem).WithMany()
+                .HasForeignKey(d => d.GrnItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PAT_GRNItem");
+
+            entity.HasOne(d => d.TargetBin).WithMany()
+                .HasForeignKey(d => d.TargetBinId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PAT_Bin");
         });
 
         OnModelCreatingPartial(modelBuilder);

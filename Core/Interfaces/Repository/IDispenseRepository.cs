@@ -9,5 +9,7 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<IEnumerable<DispenseRef>> GetByLocationAsync(int locationId);
         Task<int> CountTodayByLocationAsync(int locationId);
         Task<IEnumerable<DispenseRef>> GetRecentByLocationAsync(int locationId, int count);
+        Task<int> CountTodayAsync();
+        Task<IEnumerable<DispenseRef>> GetRecentAsync(int count);
     }
 }

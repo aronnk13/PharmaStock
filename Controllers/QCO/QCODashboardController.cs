@@ -5,7 +5,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.QCO
 {
     [ApiController]
-    [Authorize(Roles = "QualityComplianceOfficer")]
+    [Authorize(Roles = "QualityOfficer")]
     [Route("api/qco-dashboard")]
     public class QCODashboardController : ControllerBase
     {

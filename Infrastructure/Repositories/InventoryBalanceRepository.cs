@@ -19,6 +19,16 @@ namespace PharmaStock.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<InventoryBalance>> GetAllWithDetailsAsync()
+        {
+            return await _pharmaStockContext.InventoryBalances
+                .Include(b => b.Location)
+                .Include(b => b.Bin)
+                .Include(b => b.Item)
+                .Include(b => b.InventoryLot)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<InventoryBalance>> GetByItemAsync(int itemId)
         {
             return await _pharmaStockContext.InventoryBalances

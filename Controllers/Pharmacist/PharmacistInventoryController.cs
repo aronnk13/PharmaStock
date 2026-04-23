@@ -13,9 +13,11 @@ namespace PharmaStock.Controllers.Pharmacist
         public PharmacistInventoryController(IInventoryBalanceRepository repo) => _repo = repo;
 
         [HttpGet]
-        public async Task<IActionResult> GetByLocation([FromQuery] int locationId)
+        public async Task<IActionResult> GetByLocation([FromQuery] int? locationId)
         {
-            var items = await _repo.GetByLocationAsync(locationId);
+            var items = locationId.HasValue
+                ? await _repo.GetByLocationAsync(locationId.Value)
+                : await _repo.GetAllWithDetailsAsync();
             var result = items.Select(b => new
             {
                 b.InventoryBalanceId,

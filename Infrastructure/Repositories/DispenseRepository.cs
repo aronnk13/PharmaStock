@@ -59,5 +59,23 @@ namespace PharmaStock.Infrastructure.Repositories
                 .Take(count)
                 .ToListAsync();
         }
+
+        public async Task<int> CountTodayAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+            return await _pharmaStockContext.DispenseRefs
+                .Where(d => d.DispenseDate.Date >= today)
+                .CountAsync();
+        }
+
+        public async Task<IEnumerable<DispenseRef>> GetRecentAsync(int count)
+        {
+            return await _pharmaStockContext.DispenseRefs
+                .Include(d => d.Item).ThenInclude(i => i.Drug)
+                .Include(d => d.DestinationNavigation)
+                .OrderByDescending(d => d.DispenseDate)
+                .Take(count)
+                .ToListAsync();
+        }
     }
 }
