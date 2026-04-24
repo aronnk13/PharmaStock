@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PharmaStock.Core.Validators.Auth;
 using PharmaStock.Core.Validators.Location;
 using PharmaStock.Infrastructure.Services;
+using PharmaStock.Infrastructure.BackgroundJobs;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -137,6 +138,7 @@ builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
 
 builder.Services.AddScoped<IReplenishmentRepository, ReplenishmentRepository>();
 builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
+builder.Services.AddHostedService<ReplenishmentBackgroundService>();
 
 builder.Services.AddScoped<IExpiryWatchRepository, ExpiryWatchRepository>();
 builder.Services.AddScoped<IExpiryWatchService, ExpiryWatchService>();

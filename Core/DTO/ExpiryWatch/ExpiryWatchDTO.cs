@@ -4,7 +4,7 @@ namespace PharmaStock.Core.DTO.ExpiryWatch
     {
         public int ExpiryWatchId { get; set; }
         public int InventoryLotId { get; set; }
-        public int BatchNumber { get; set; }
+        public string? BatchNumber { get; set; }
         public string? ItemName { get; set; }
         public int ItemId { get; set; }
         public DateOnly ExpiryDate { get; set; }

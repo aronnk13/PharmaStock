@@ -41,7 +41,7 @@ namespace PharmaStock.Core.Services
             {
                 ExpiryWatchId = e.ExpiryWatchId,
                 InventoryLotId = e.InventoryLotId,
-                BatchNumber = e.InventoryLot?.BatchNumber ?? 0,
+                BatchNumber = e.InventoryLot?.BatchNumber.ToString(),
                 ItemId = e.InventoryLot?.ItemId ?? 0,
                 ItemName = e.InventoryLot?.Item?.Drug?.GenericName ?? "Unknown",
                 ExpiryDate = expiryDate,

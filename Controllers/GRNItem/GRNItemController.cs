@@ -10,7 +10,7 @@ namespace PharmaStock.Controllers.GRNItem
 {
     [ApiController]
     [Route("api/v1/goods-receipt")]
-    [Authorize]
+    [Authorize(Roles = "Admin,Pharmacist,InventoryController")]
     public class GRNItemController : ControllerBase
     {
         private readonly IGRNItemService _service;
@@ -29,7 +29,6 @@ namespace PharmaStock.Controllers.GRNItem
         }
 
         [HttpPost("CreateGRNItem")]
-        [Authorize(Roles = "Admin,Procurement Officer,Quality Officer")]
         public async Task<IActionResult> Create([FromBody] CreateGRNItemDTO dto)
         {
             try

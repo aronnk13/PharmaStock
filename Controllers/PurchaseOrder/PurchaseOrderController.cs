@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO;
+using PharmaStock.Core.DTO.GoodsReceipt;
 using PharmaStock.Core.DTO.PurchaseOrder;
 using PharmaStock.Core.Interfaces.Service;
 
@@ -10,7 +11,7 @@ namespace PharmaStock.Controllers.PurchaseOrder
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin,ProcurementOfficer")]
+    [Authorize(Roles = "Admin,ProcurementOfficer,Pharmacist,InventoryController")]
     public class PurchaseOrderController : ControllerBase
     {
         private readonly IPurchaseOrderService _service;
@@ -130,6 +131,25 @@ namespace PharmaStock.Controllers.PurchaseOrder
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("approved-pending-grn")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetApprovedPendingGrn()
+        {
+            var result = await _service.GetApprovedPendingGrnAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/details")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetWithItems(int id)
+        {
+            var result = await _service.GetWithItemsAsync(id);
+            if (result == null)
+                return NotFound(new { message = "Purchase order not found." });
+            return Ok(result);
         }
     }
 }

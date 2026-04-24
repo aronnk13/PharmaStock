@@ -13,7 +13,7 @@ namespace PharmaStock.Core.Interfaces.Service
       
         Task<IEnumerable<InventoryLotDTO>> SearchAsync(
             int? itemId,
-            int? batchNumber,
+            string? batchNumber,
             int? status,
             DateOnly? expiryBefore,
             DateOnly? expiryAfter);

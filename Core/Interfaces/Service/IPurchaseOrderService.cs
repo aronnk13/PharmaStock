@@ -1,3 +1,4 @@
+using PharmaStock.Core.DTO.GoodsReceipt;
 using PharmaStock.Core.DTO.PurchaseOrder;
 
 namespace PharmaStock.Core.Interfaces.Service
@@ -10,5 +11,7 @@ namespace PharmaStock.Core.Interfaces.Service
         Task<PurchaseOrderResponseDTO> CreateAsync(CreatePurchaseOrderDTO dto);
         Task<PurchaseOrderResponseDTO> UpdateAsync(int id, UpdatePurchaseOrderDTO dto);
         System.Threading.Tasks.Task DeleteAsync(int id);
+        Task<List<ApprovedPendingGrnDTO>> GetApprovedPendingGrnAsync();
+        Task<PoWithItemsDTO?> GetWithItemsAsync(int id);
     }
 }

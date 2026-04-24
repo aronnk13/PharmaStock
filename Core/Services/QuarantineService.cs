@@ -59,7 +59,7 @@ namespace PharmaStock.Core.Services
         {
             QuarantaineActionId = q.QuarantaineActionId,
             InventoryLotId = q.InventoryLotId,
-            BatchNumber = q.InventoryLot?.BatchNumber,
+            BatchNumber = q.InventoryLot?.BatchNumber.ToString(),
             ItemName = q.InventoryLot?.Item?.Drug?.GenericName,
             QuarantineDate = q.QuarantineDate,
             Reason = q.Reason,

@@ -16,10 +16,13 @@ namespace PharmaStock.Core.Services
 
         public async Task<InventoryLotDTO> CreateAsync(InventoryLotDTO dto)
         {
+            if (!int.TryParse(dto.BatchNumber?.Trim(), out var batchInt))
+                throw new ArgumentException("BatchNumber must be numeric.");
+
             var entity = new InventoryLot
             {
                 ItemId = dto.ItemId,
-                BatchNumber = dto.BatchNumber,
+                BatchNumber = batchInt,
                 ExpiryDate = dto.ExpiryDate,
                 ManufacturerId = dto.ManufacturerId,
                 Status = dto.Status
@@ -41,7 +44,7 @@ namespace PharmaStock.Core.Services
 
         public async Task<IEnumerable<InventoryLotDTO>> SearchAsync(
         int? itemId,
-        int? batchNumber,
+        string? batchNumber,
         int? status,
         DateOnly? expiryBefore,
         DateOnly? expiryAfter)
@@ -53,8 +56,8 @@ namespace PharmaStock.Core.Services
             if (itemId.HasValue)
                 query = query.Where(l => l.ItemId == itemId.Value);
 
-            if (batchNumber.HasValue)
-                query = query.Where(l => l.BatchNumber == batchNumber.Value);
+            if (!string.IsNullOrEmpty(batchNumber))
+                query = query.Where(l => l.BatchNumber.ToString() == batchNumber);
 
             if (status.HasValue)
                 query = query.Where(l => l.Status == status.Value);
@@ -75,8 +78,11 @@ namespace PharmaStock.Core.Services
             if (lot == null)
                 throw new KeyNotFoundException("Inventory Lot not found");
 
+            if (!int.TryParse(dto.BatchNumber?.Trim(), out var updBatchInt))
+                throw new ArgumentException("BatchNumber must be numeric.");
+
             lot.ItemId = dto.ItemId;
-            lot.BatchNumber = dto.BatchNumber;
+            lot.BatchNumber = updBatchInt;
             lot.ExpiryDate = dto.ExpiryDate;
             lot.ManufacturerId = dto.ManufacturerId;
             lot.Status = dto.Status;
@@ -93,7 +99,7 @@ namespace PharmaStock.Core.Services
         {
             InventoryLotId = lot.InventoryLotId,
             ItemId = lot.ItemId,
-            BatchNumber = lot.BatchNumber,
+            BatchNumber = lot.BatchNumber.ToString(),   // int entity → string DTO
             ExpiryDate = lot.ExpiryDate,
             ManufacturerId = lot.ManufacturerId,
             Status = lot.Status

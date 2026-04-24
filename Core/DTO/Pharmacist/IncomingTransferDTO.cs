@@ -19,7 +19,7 @@ namespace PharmaStock.Core.DTO.Pharmacist
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public int InventoryLotId { get; set; }
-        public int? BatchNumber { get; set; }
+        public string? BatchNumber { get; set; }
         public int Quantity { get; set; }
     }
 }

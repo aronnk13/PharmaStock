@@ -34,4 +34,36 @@ namespace PharmaStock.Core.DTO.Replenishment
         public int ParLevel { get; set; }
         public bool ReviewCycle { get; set; }
     }
+
+    public class CreateReplenishmentRuleDTO
+    {
+        public int LocationId { get; set; }
+        public int ItemId { get; set; }
+        public int MinLevel { get; set; }
+        public int MaxLevel { get; set; }
+        public int ParLevel { get; set; }
+        public bool ReviewCycle { get; set; }
+    }
+
+    public class RunCheckResultDTO
+    {
+        public string Message { get; set; } = null!;
+        public int NewRequestsCreated { get; set; }
+    }
+
+    public class ConvertToTransferOrderResultDTO
+    {
+        public int TransferOrderId { get; set; }
+        public int FromLocationId { get; set; }
+        public string? FromLocationName { get; set; }
+        public int ToLocationId { get; set; }
+        public string? ToLocationName { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public int Status { get; set; }
+        public int ReplenishmentRequestId { get; set; }
+        public int ItemId { get; set; }
+        public string? ItemName { get; set; }
+        public int SuggestedQty { get; set; }
+        public bool TransferItemCreated { get; set; }
+    }
 }

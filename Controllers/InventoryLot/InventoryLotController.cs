@@ -55,7 +55,7 @@ namespace PharmaStock.Controllers.InventoryLot
         [HttpGet("search")]
         public async Task<IActionResult> Search(
         [FromQuery] int? itemId,
-        [FromQuery] int? batchNumber,
+        [FromQuery] string? batchNumber,
         [FromQuery] int? status,
         [FromQuery] DateOnly? expiryBefore,
         [FromQuery] DateOnly? expiryAfter)

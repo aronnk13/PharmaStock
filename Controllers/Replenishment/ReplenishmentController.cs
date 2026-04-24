@@ -11,7 +11,7 @@ using PharmaStock.Models;
 namespace PharmaStock.Controllers.Replenishment
 {
     [ApiController]
-    [Authorize(Roles = "InventoryController")]
+    [Authorize(Roles = "InventoryController,Admin")]
     [Route("api/replenishment")]
     public class ReplenishmentController : ControllerBase
     {
@@ -19,7 +19,10 @@ namespace PharmaStock.Controllers.Replenishment
         private readonly PharmaStockContext _context;
         private readonly IAuditLogService _auditLogService;
 
-        public ReplenishmentController(IReplenishmentService service, PharmaStockContext context, IAuditLogService auditLogService)
+        public ReplenishmentController(
+            IReplenishmentService service,
+            PharmaStockContext context,
+            IAuditLogService auditLogService)
         {
             _service = service;
             _context = context;
@@ -32,7 +35,8 @@ namespace PharmaStock.Controllers.Replenishment
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
-        /// <summary>Returns items with their drug names for use in dropdowns.</summary>
+        // ── Lookup ──────────────────────────────────────────────────────────────
+
         [HttpGet("items-lookup")]
         public async Task<IActionResult> GetItemsLookup()
         {
@@ -51,6 +55,8 @@ namespace PharmaStock.Controllers.Replenishment
             ).ToListAsync();
             return Ok(items);
         }
+
+        // ── Requests ────────────────────────────────────────────────────────────
 
         [HttpGet("requests")]
         public async Task<IActionResult> GetAllRequests()
@@ -107,10 +113,99 @@ namespace PharmaStock.Controllers.Replenishment
             return Ok(new { success = true });
         }
 
+        // ── Rules ────────────────────────────────────────────────────────────────
+
         [HttpGet("rules")]
         public async Task<IActionResult> GetAllRules()
         {
             var result = await _service.GetAllRulesAsync();
+            return Ok(result);
+        }
+
+        [HttpPost("rules")]
+        public async Task<IActionResult> CreateRule([FromBody] CreateReplenishmentRuleDTO dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _service.CreateRuleAsync(dto);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "REPLENISHMENT_RULE_CREATED",
+                Resource = $"ReplenishmentRule:{result.ReplenishmentRuleId}",
+                Metadata = JsonSerializer.Serialize(result)
+            });
+
+            return Ok(result);
+        }
+
+        [HttpPut("rules/{id}")]
+        public async Task<IActionResult> UpdateRule(int id, [FromBody] CreateReplenishmentRuleDTO dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var success = await _service.UpdateRuleAsync(id, dto);
+            if (!success) return NotFound();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "REPLENISHMENT_RULE_UPDATED",
+                Resource = $"ReplenishmentRule:{id}",
+                Metadata = JsonSerializer.Serialize(new { ruleId = id })
+            });
+
+            return Ok(new { success = true });
+        }
+
+        [HttpDelete("rules/{id}")]
+        public async Task<IActionResult> DeleteRule(int id)
+        {
+            var success = await _service.DeleteRuleAsync(id);
+            if (!success) return NotFound();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "REPLENISHMENT_RULE_DELETED",
+                Resource = $"ReplenishmentRule:{id}",
+                Metadata = JsonSerializer.Serialize(new { ruleId = id })
+            });
+
+            return Ok(new { success = true });
+        }
+
+        // ── Auto Replenishment ───────────────────────────────────────────────────
+
+        [HttpPost("run-check")]
+        public async Task<IActionResult> RunCheck()
+        {
+            var result = await _service.RunReplenishmentCheckAsync();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "REPLENISHMENT_CHECK_RUN",
+                Resource = "ReplenishmentCheck",
+                Metadata = JsonSerializer.Serialize(result)
+            });
+
+            return Ok(result);
+        }
+
+        [HttpPost("{reqId}/convert")]
+        public async Task<IActionResult> ConvertToTransferOrder(int reqId, [FromQuery] int fromLocationId = 1)
+        {
+            var result = await _service.ConvertToTransferOrderAsync(reqId, fromLocationId);
+            if (result == null) return NotFound(new { message = "Request not found or not in Open status." });
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "REPLENISHMENT_CONVERTED_TO_TRANSFER",
+                Resource = $"TransferOrder:{result.TransferOrderId}",
+                Metadata = JsonSerializer.Serialize(new { reqId, transferOrderId = result.TransferOrderId })
+            });
+
             return Ok(result);
         }
     }

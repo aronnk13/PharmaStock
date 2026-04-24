@@ -61,7 +61,7 @@ namespace PharmaStock.Infrastructure.Repositories
                 .Take(filter.PageSize)
                 .Select(i => new GRNItemResponseDTO
                 {
-                    BatchNumber = i.BatchNumber,
+                    BatchNumber = i.BatchNumber.ToString(),
                     ExpiryDate = i.ExpiryDate,
                     ReceivedQty = i.ReceivedQty,
                     AcceptedQty = i.AcceptedQty,

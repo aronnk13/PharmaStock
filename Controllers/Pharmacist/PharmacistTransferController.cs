@@ -64,7 +64,7 @@ namespace PharmaStock.Controllers.Pharmacist
                     ItemId = ti.ItemId,
                     ItemName = ti.Item?.Drug?.GenericName,
                     InventoryLotId = ti.InventoryLotId,
-                    BatchNumber = ti.InventoryLot?.BatchNumber,
+                    BatchNumber = ti.InventoryLot?.BatchNumber.ToString(),
                     Quantity = ti.Quantity
                 }).ToList()
             });

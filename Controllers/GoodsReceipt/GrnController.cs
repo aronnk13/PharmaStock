@@ -11,7 +11,7 @@ namespace PharmaStock.Controllers.GoodsReceipt
 {
     [ApiController]
     [Route("api/GoodsReceipts")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Pharmacist,InventoryController")]
     public class GrnController : ControllerBase
     {
         private readonly IGrnService _grnService;
@@ -72,13 +72,13 @@ namespace PharmaStock.Controllers.GoodsReceipt
 
         [HttpGet("{grnId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGrnById(int grnId)
         {
             if (grnId <= 0)
                 return BadRequest(new { message = "GrnId must be greater than 0." });
 
-            var grn = await _grnService.GetGrnByIdAsync(grnId);
+            var grn = await _grnService.GetGrnWithItemsAsync(grnId);
             if (grn == null)
                 return NotFound(new { errorCode = "GRN_NOT_FOUND", message = "Goods receipt not found." });
 
@@ -87,11 +87,17 @@ namespace PharmaStock.Controllers.GoodsReceipt
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllGrns([FromQuery] GrnFilterDTO filter)
         {
             var result = await _grnService.GetAllGrnsAsync(filter);
+            return Ok(result);
+        }
+
+        [HttpGet("pending-qc")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPendingQc()
+        {
+            var result = await _grnService.GetPendingQcAsync();
             return Ok(result);
         }
 
@@ -115,7 +121,6 @@ namespace PharmaStock.Controllers.GoodsReceipt
 
                 var result = await _grnService.UpdateGrnAsync(grnId, request);
 
-                // Determine audit action based on what changed
                 var action = request.StatusId == 2 ? "GRN_POSTED"
                            : request.StatusId == 3 ? "GRN_REJECTED"
                            : "GRN_UPDATED";
@@ -160,6 +165,68 @@ namespace PharmaStock.Controllers.GoodsReceipt
             }
             catch (Exception ex)
             {
+                return StatusCode(500, new { errorCode = "INTERNAL_ERROR", message = ex.Message });
+            }
+        }
+
+        [HttpPatch("{grnId}/complete-qc")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> CompleteQc([FromRoute] int grnId, [FromBody] CompleteQcDTO dto)
+        {
+            Console.WriteLine($"QC Request received for GRN: {grnId}");
+            Console.WriteLine($"Items in DTO: {JsonSerializer.Serialize(dto.Items)}");
+            if (dto == null)
+                return BadRequest(new { message = "Request body is required." });
+
+            try
+            {
+                var result = await _grnService.CompleteQcAsync(grnId, dto, GetCurrentUserId());
+                Console.WriteLine($"QC Logic Finished. Resulting Status object: {JsonSerializer.Serialize(result)}");
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "GRN_QC_COMPLETED",
+                    Resource = $"GoodsReceipt:{grnId}",
+                    Metadata = JsonSerializer.Serialize(result)
+                });
+
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex) when (ex.Message == "GRN_NOT_FOUND")
+            {
+                return NotFound(new { errorCode = "GRN_NOT_FOUND", message = "Goods receipt not found." });
+            }
+            catch (KeyNotFoundException ex) when (ex.Message.StartsWith("GRN_ITEM_NOT_FOUND"))
+            {
+                return NotFound(new { errorCode = "GRN_ITEM_NOT_FOUND", message = ex.Message });
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "GRN_ALREADY_COMPLETED")
+            {
+                return Conflict(new { errorCode = "GRN_ALREADY_COMPLETED", message = "GRN QC has already been completed." });
+            }
+            catch (ArgumentException ex) when (ex.Message.StartsWith("QTY_MISMATCH"))
+            {
+                return BadRequest(new { errorCode = "QTY_MISMATCH", message = ex.Message });
+            }
+            catch (ArgumentException ex) when (ex.Message.StartsWith("NEGATIVE_QTY"))
+            {
+                return BadRequest(new { errorCode = "NEGATIVE_QTY", message = ex.Message });
+            }
+            catch (ArgumentException ex) when (ex.Message.StartsWith("REASON_REQUIRED"))
+            {
+                return BadRequest(new { errorCode = "REASON_REQUIRED", message = "Rejection reason is required when rejectedQty > 0." });
+            }
+            catch (ArgumentException ex) when (ex.Message == "QC_ITEMS_EMPTY")
+            {
+                return BadRequest(new { errorCode = "QC_ITEMS_EMPTY", message = "No QC items were submitted. Please reload the GRN and try again." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[QC-CTRL] ERROR in CompleteQc for GRN {grnId}: {ex}");
                 return StatusCode(500, new { errorCode = "INTERNAL_ERROR", message = ex.Message });
             }
         }

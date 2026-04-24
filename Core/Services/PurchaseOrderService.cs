@@ -1,3 +1,4 @@
+using PharmaStock.Core.DTO.GoodsReceipt;
 using PharmaStock.Core.DTO.PurchaseOrder;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
@@ -77,5 +78,11 @@ namespace PharmaStock.Core.Services
 
             await _repo.DeleteAsync(id);
         }
+
+        public async Task<List<ApprovedPendingGrnDTO>> GetApprovedPendingGrnAsync()
+            => await _repo.GetApprovedPendingGrnAsync();
+
+        public async Task<PoWithItemsDTO?> GetWithItemsAsync(int id)
+            => await _repo.GetWithItemsAsync(id);
     }
 }

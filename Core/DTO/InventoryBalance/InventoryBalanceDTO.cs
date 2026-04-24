@@ -10,7 +10,7 @@ namespace PharmaStock.Core.DTO.InventoryBalance
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public int InventoryLotId { get; set; }
-        public int BatchNumber { get; set; }
+        public string? BatchNumber { get; set; }
         public DateOnly? ExpiryDate { get; set; }
         public int QuantityOnHand { get; set; }
         public int ReservedQty { get; set; }

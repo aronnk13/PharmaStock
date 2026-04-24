@@ -66,7 +66,7 @@ namespace PharmaStock.Infrastructure.Services
                 {
                     InventoryLotId = l.InventoryLotId,
                     ItemName = l.Item.Drug.GenericName,
-                    BatchNumber = l.BatchNumber,
+                    BatchNumber = l.BatchNumber.ToString(),
                     ExpiryDate = l.ExpiryDate,
                     DaysToExpire = l.ExpiryDate.DayNumber - today.DayNumber
                 })

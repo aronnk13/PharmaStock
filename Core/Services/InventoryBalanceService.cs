@@ -48,7 +48,7 @@ namespace PharmaStock.Core.Services
             ItemId = b.ItemId,
             ItemName = b.Item?.Drug?.GenericName,
             InventoryLotId = b.InventoryLotId,
-            BatchNumber = b.InventoryLot?.BatchNumber ?? 0,
+            BatchNumber = b.InventoryLot?.BatchNumber.ToString(),
             ExpiryDate = b.InventoryLot?.ExpiryDate,
             QuantityOnHand = b.QuantityOnHand,
             ReservedQty = b.ReservedQty

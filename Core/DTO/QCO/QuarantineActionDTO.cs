@@ -4,7 +4,7 @@ namespace PharmaStock.Core.DTO.QCO
     {
         public int QuarantaineActionId { get; set; }
         public int InventoryLotId { get; set; }
-        public int? BatchNumber { get; set; }
+        public string? BatchNumber { get; set; }
         public string? ItemName { get; set; }
         public DateTime QuarantineDate { get; set; }
         public string Reason { get; set; } = null!;

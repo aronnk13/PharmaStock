@@ -14,7 +14,8 @@ namespace PharmaStock.Core.DTO.GRNItem
         public int ItemId { get; set; }
         
         [Required]
-        public int BatchNumber { get; set; }
+        [MaxLength(50)]
+        public string BatchNumber { get; set; } = null!;
 
         [Required]
         public DateOnly ExpiryDate { get; set; }

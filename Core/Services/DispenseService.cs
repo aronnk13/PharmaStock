@@ -54,7 +54,7 @@ namespace PharmaStock.Core.Services
             ItemId = d.ItemId,
             ItemName = d.Item?.Drug?.GenericName,
             InventoryLotId = d.InventoryLotId,
-            BatchNumber = d.InventoryLot?.BatchNumber,
+            BatchNumber = d.InventoryLot?.BatchNumber.ToString(),
             Quantity = d.Quantity,
             DispenseDate = d.DispenseDate,
             Status = d.Status,
