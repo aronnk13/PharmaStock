@@ -25,7 +25,9 @@ namespace PharmaStock.Controllers.Location
         private int GetCurrentUserId()
         {
             var claim = User.FindFirst("userId")?.Value;
-            return int.TryParse(claim, out var id) ? id : 0;
+            if (!int.TryParse(claim, out var id))
+                throw new InvalidOperationException("userId claim is missing or invalid in the JWT token.");
+            return id;
         }
 
         [HttpGet]

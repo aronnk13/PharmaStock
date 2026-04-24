@@ -39,20 +39,9 @@ namespace PharmaStock.Infrastructure.Repositories
 
         public async Task<AuditLog> AddAsync(Audit log)
         {
-            var res=new AuditLog();
-            try
-            {
-                pharmaStockContext.Audits.Add(log);
-                await pharmaStockContext.SaveChangesAsync();
-                res.Result=true;
-                res.Message=null;
-            }
-            catch (Exception ex)
-            {
-                res.Result=false;
-                res.Message=$"Unexpected error: {ex.Message}";
-            }
-            return res;
+            pharmaStockContext.Audits.Add(log);
+            await pharmaStockContext.SaveChangesAsync();
+            return new AuditLog { Result = true };
         }
     }
 }

@@ -133,24 +133,22 @@ namespace PharmaStock.Core.Services
             if (bin == null)
                 throw new KeyNotFoundException("BIN_NOT_FOUND");
 
-            // 2. Already deleted
-            if (!bin.StatusId)
-                throw new InvalidOperationException("BIN_ALREADY_DELETED");
-
-            // 3. Block if inventory exists
+            // 2. Block if inventory exists
             var hasInventory = await _binRepository.HasInventoryAsync(binId);
             if (hasInventory)
                 throw new InvalidOperationException("BIN_HAS_INVENTORY");
 
-            // 4. Block if open put-away tasks exist
+            // 3. Block if open put-away tasks exist
             var hasOpenTasks = await _binRepository.HasOpenPutAwayTasksAsync(binId);
             if (hasOpenTasks)
                 throw new InvalidOperationException("BIN_OPEN_TASKS");
 
-            bin.StatusId = false;
-            await _binRepository.UpdateAsync(bin);
+            // Snapshot for audit before deleting
+            var snapshot = await _binRepository.GetBinDtoByIdAsync(binId);
 
-            return await _binRepository.GetBinDtoByIdAsync(binId)!;
+            await _binRepository.DeleteAsync(binId);
+
+            return snapshot!;
         }
 
         public async Task<GetBinDTO?> GetBinByIdAsync(int binId)

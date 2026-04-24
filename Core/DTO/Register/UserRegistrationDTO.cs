@@ -32,9 +32,9 @@ namespace PharmaStock.Core.DTO.Register
         public string Phone { get; set; }
 
         /// <summary>
-        /// The ID of the admin performing this action.
+        /// The username of the admin performing this action. Set server-side from JWT, not from client.
         /// </summary>
-        public string AdminName { get; set; }
+        public string AdminName { get; set; } = string.Empty;
 
         /// <summary>
         /// Whether the user account is active.

@@ -193,10 +193,6 @@ namespace PharmaStock.Controllers.Bin
             {
                 return NotFound(new { errorCode = "BIN_NOT_FOUND", message = "Bin not found." });
             }
-            catch (InvalidOperationException ex) when (ex.Message == "BIN_ALREADY_DELETED")
-            {
-                return Conflict(new { errorCode = "BIN_ALREADY_DELETED", message = "Bin is already deleted." });
-            }
             catch (InvalidOperationException ex) when (ex.Message == "BIN_HAS_INVENTORY")
             {
                 return Conflict(new { errorCode = "BIN_HAS_INVENTORY", message = "Cannot delete bin while it has inventory." });

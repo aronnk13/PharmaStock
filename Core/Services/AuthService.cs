@@ -27,7 +27,11 @@ namespace PharmaStock.Core.Services
             if (user == null)
                 throw new UnauthorizedAccessException("INVALID_USERNAME");
 
-            // 2. Password check
+            // 2. Active status check
+            if (!user.StatusId)
+                throw new UnauthorizedAccessException("ACCOUNT_INACTIVE");
+
+            // 3. Password check
             if (dto.Password != user.PasswordHash)
                 throw new UnauthorizedAccessException("INVALID_PASSWORD");
 

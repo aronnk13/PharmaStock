@@ -47,6 +47,16 @@ namespace PharmaStock.Controllers.Lookup
             return Ok(result);
         }
 
+        [HttpGet("drug-storage-classes")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDrugStorageClasses()
+        {
+            var result = await _context.DrugStorageClasses
+                .Select(s => new { s.DrugStorageClassId, s.Class })
+                .ToListAsync();
+            return Ok(result);
+        }
+
         [HttpGet("uoms")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetUoMs()

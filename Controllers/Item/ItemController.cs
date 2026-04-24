@@ -118,6 +118,27 @@ namespace PharmaStock.Controllers.Item
             }
         }
 
+        [HttpPatch]
+        [Route("{itemId}/toggle-status")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ToggleStatus([FromRoute] int itemId)
+        {
+            var success = await _itemService.ToggleStatusAsync(itemId);
+            if (!success)
+                return NotFound(new { message = "Item not found." });
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "ITEM_STATUS_TOGGLED",
+                Resource = $"Item:{itemId}",
+                Metadata = JsonSerializer.Serialize(new { itemId })
+            });
+
+            return Ok(new { message = "Item status updated." });
+        }
+
         [HttpDelete]
         [Route("DeleteItem/{itemId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

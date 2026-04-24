@@ -62,5 +62,10 @@ namespace PharmaStock.Core.Services
         {
             return await _itemRepository.DeleteItem(itemId);
         }
+
+        public async Task<bool> ToggleStatusAsync(int itemId)
+        {
+            return await _itemRepository.ToggleStatusAsync(itemId);
+        }
     }
 }

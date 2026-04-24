@@ -78,8 +78,16 @@ namespace PharmaStock.Infrastructure.Repositories
                 if (item == null)
                     return new ItemDeletedResponseDTO { IsDeleted = false, Message = "Item not found." };
 
-                item.Status = false;
-                _context.Items.Update(item);
+                if (await _context.InventoryLots.AnyAsync(x => x.ItemId == itemId))
+                    return new ItemDeletedResponseDTO { IsDeleted = false, Message = "Cannot delete this item. It has inventory lots linked to it." };
+
+                if (await _context.GoodsReceiptItems.AnyAsync(x => x.ItemId == itemId))
+                    return new ItemDeletedResponseDTO { IsDeleted = false, Message = "Cannot delete this item. It has goods receipt records linked to it." };
+
+                if (await _context.PurchaseItems.AnyAsync(x => x.ItemId == itemId))
+                    return new ItemDeletedResponseDTO { IsDeleted = false, Message = "Cannot delete this item. It is referenced in purchase orders." };
+
+                _context.Items.Remove(item);
                 var rowsAffected = await _context.SaveChangesAsync();
 
                 if (rowsAffected > 0)
@@ -91,6 +99,15 @@ namespace PharmaStock.Infrastructure.Repositories
             {
                 return new ItemDeletedResponseDTO { IsDeleted = false, Message = $"An error occurred: {ex.Message}" };
             }
+        }
+
+        public async Task<bool> ToggleStatusAsync(int itemId)
+        {
+            var item = await _context.Items.FindAsync(itemId);
+            if (item == null) return false;
+            item.Status = !item.Status;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

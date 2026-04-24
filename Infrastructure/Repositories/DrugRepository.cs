@@ -96,17 +96,27 @@ namespace PharmaStock.Infrastructure.Repositories
             {
                 var drug = await _pStockContext.Drugs.FindAsync(drugId);
                 if (drug == null)
-                {
+                    return new DrugDeletedResponseDTO { IsDeleted = false, Message = "Drug not found." };
+
+                // Block delete if drug has linked items
+                var hasItems = await _pStockContext.Items.AnyAsync(i => i.DrugId == drugId);
+                if (hasItems)
                     return new DrugDeletedResponseDTO
                     {
                         IsDeleted = false,
-                        Message = "Drug not found."
+                        Message = "Cannot delete this drug. It has one or more items linked to it. Remove the items first."
                     };
-                }
 
-                // 2. Remove from database
+                // Block delete if drug has active recall notices
+                var hasRecalls = await _pStockContext.RecallNotices.AnyAsync(r => r.DrugId == drugId);
+                if (hasRecalls)
+                    return new DrugDeletedResponseDTO
+                    {
+                        IsDeleted = false,
+                        Message = "Cannot delete this drug. It has recall notices linked to it."
+                    };
+
                 _pStockContext.Drugs.Remove(drug);
-
                 var rowsAffected = await _pStockContext.SaveChangesAsync();
 
                 if (rowsAffected > 0)

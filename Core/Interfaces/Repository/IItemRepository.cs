@@ -13,5 +13,6 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task UpdateAsync(Item item);
         Task<Item?> GetByIdAsync(int itemId);
         Task<ItemDeletedResponseDTO> DeleteItem(int itemId);
+        Task<bool> ToggleStatusAsync(int itemId);
     }
 }

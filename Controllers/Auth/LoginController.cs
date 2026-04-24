@@ -33,6 +33,10 @@ namespace PharmaStock.Controllers.Auth
             {
                 return Unauthorized(new { message = "Invalid Password." });
             }
+            catch (UnauthorizedAccessException ex) when (ex.Message == "ACCOUNT_INACTIVE")
+            {
+                return Unauthorized(new { message = "Your account is inactive. Please contact the administrator." });
+            }
         }
     }
 }

@@ -26,7 +26,17 @@ namespace PharmaStock.Controllers.Admin
         private int GetCurrentUserId()
         {
             var claim = User.FindFirst("userId")?.Value;
-            return int.TryParse(claim, out var id) ? id : 0;
+            if (!int.TryParse(claim, out var id))
+                throw new InvalidOperationException("userId claim is missing or invalid in the JWT token.");
+            return id;
+        }
+
+        private string GetCurrentUsername()
+        {
+            var username = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(username))
+                throw new InvalidOperationException("Username claim is missing in the JWT token.");
+            return username;
         }
 
         [HttpPost("UpsertUser")]
@@ -38,17 +48,25 @@ namespace PharmaStock.Controllers.Admin
             if (upsertUserDTO == null)
                 return BadRequest(new { error = "Request data cannot be null." });
 
+            if (!upsertUserDTO.IsCreate && !upsertUserDTO.StatusId && upsertUserDTO.UserId == GetCurrentUserId())
+                return BadRequest(new { error = "You cannot deactivate your own account." });
+
+            upsertUserDTO.AdminName = GetCurrentUsername();
+
             var response = await _userService.UpsertUser(upsertUserDTO);
 
             if (response.IsSuccess)
             {
-                await _auditLogService.CreateLogAsync(new AuditDto
+                var auditResult = await _auditLogService.CreateLogAsync(new AuditDto
                 {
                     UserId = GetCurrentUserId(),
                     Action = "USER_UPSERTED",
                     Resource = $"User:{upsertUserDTO.Username}",
                     Metadata = JsonSerializer.Serialize(new { username = upsertUserDTO.Username, message = response.Message })
                 });
+
+                if (!auditResult.Result)
+                    return StatusCode(500, new { error = $"User upserted but audit log failed: {auditResult.Message}" });
 
                 return Ok(new { message = response.Message });
             }
