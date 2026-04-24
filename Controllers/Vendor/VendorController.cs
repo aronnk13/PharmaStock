@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Vendor;
 using PharmaStock.Core.Interfaces.Service;
 
@@ -11,10 +14,18 @@ namespace PharmaStock.Controllers.Vendor
     public class VendorController : ControllerBase
     {
         private readonly IVendorService _vendorService;
+        private readonly IAuditLogService _auditLogService;
 
-        public VendorController(IVendorService vendorService)
+        public VendorController(IVendorService vendorService, IAuditLogService auditLogService)
         {
             _vendorService = vendorService;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpPost("create")]
@@ -22,7 +33,17 @@ namespace PharmaStock.Controllers.Vendor
         {
             try
             {
-                return Ok(await _vendorService.CreateAsync(dto));
+                var result = await _vendorService.CreateAsync(dto);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "VENDOR_CREATED",
+                    Resource = $"Vendor:{result.VendorId}",
+                    Metadata = JsonSerializer.Serialize(result)
+                });
+
+                return Ok(result);
             }
             catch (InvalidOperationException ex)
             {
@@ -50,6 +71,15 @@ namespace PharmaStock.Controllers.Vendor
         public async Task<IActionResult> Update(int vendorId, VendorDTO dto)
         {
             await _vendorService.UpdateAsync(vendorId, dto);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "VENDOR_UPDATED",
+                Resource = $"Vendor:{vendorId}",
+                Metadata = JsonSerializer.Serialize(dto)
+            });
+
             return Ok(new { success = true });
         }
 
@@ -58,6 +88,15 @@ namespace PharmaStock.Controllers.Vendor
         public async Task<IActionResult> Delete(int vendorId)
         {
             await _vendorService.DeleteAsync(vendorId);
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "VENDOR_DELETED",
+                Resource = $"Vendor:{vendorId}",
+                Metadata = JsonSerializer.Serialize(new { vendorId })
+            });
+
             return Ok(new { success = true });
         }
     }

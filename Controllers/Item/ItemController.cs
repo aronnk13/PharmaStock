@@ -1,111 +1,148 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using pharmaStock.Core.DTO.Item;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Item;
 using PharmaStock.Core.Interfaces.Service;
 
 namespace PharmaStock.Controllers.Item
 {
     [ApiController]
-    [Route("api/item")]
+    [Route("api/items")]
     [Authorize(Roles = "Admin")]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
+        private readonly IAuditLogService _auditLogService;
 
-        public ItemController(IItemService itemService)
+        public ItemController(IItemService itemService, IAuditLogService auditLogService)
         {
             _itemService = itemService;
+            _auditLogService = auditLogService;
         }
 
-
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] ItemDTO itemDTO)
+        private int GetCurrentUserId()
         {
-            var itemId = await _itemService.CreateAsync(itemDTO);
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
+        }
 
-            return Ok(new
+        [HttpPost]
+        [Route("CreateItem")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateItem([FromBody] ItemDTO request)
+        {
+            if (request == null)
+                return BadRequest(new { message = "Request body is required." });
+
+            try
             {
-                success = true,
-                itemId,
-                message = "Item created successfully"
-            });
+                var result = await _itemService.CreateAsync(request);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "ITEM_CREATED",
+                    Resource = $"Item:{result.ItemId}",
+                    Metadata = JsonSerializer.Serialize(result)
+                });
+
+                return CreatedAtAction(nameof(GetItemById), new { itemId = result.ItemId }, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { errorCode = "INTERNAL_ERROR", message = ex.Message });
+            }
         }
 
-
-        [HttpGet("{itemId}")]
-        public async Task<IActionResult> GetById(int itemId)
+        [HttpGet]
+        [Route("GetItemById/{itemId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetItemById(int itemId)
         {
-            var item = await _itemService.GetByIdAsync(itemId);
+            if (itemId <= 0)
+                return BadRequest(new { message = "ItemId must be greater than 0." });
 
+            var item = await _itemService.GetByIdAsync(itemId);
             if (item == null)
-                return NotFound(new { success = false, message = "Item not found" });
+                return NotFound(new { errorCode = "ITEM_NOT_FOUND", message = "Item not found." });
 
             return Ok(item);
         }
 
-
-
-        [HttpPut("update/{itemId}")]
-        public async Task<IActionResult> Update(int itemId,[FromBody] ItemDTO itemDTO)
+        [HttpGet]
+        [Route("GetAllItems")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllItems()
         {
-            try
-            {
-                await _itemService.UpdateAsync(itemId, itemDTO);
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Item updated successfully"
-                });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
-            }
-        }
-        [HttpGet("Items")]
-        public async Task<IActionResult> GetFiltered([FromBody] ItemFilterDTO filter)
-        {
-            if (filter.PackSize.HasValue && filter.PackSize.Value <= 0)
-            {
-                return BadRequest(new { success = false, message = "PackSize must be greater than zero." });
-            }
-
-            if (filter.PackSize.HasValue && filter.PackSize.Value > 1000)
-            {
-                return BadRequest(new { success = false, message = "PackSize cannot exceed 1000 units." });
-            }
-
-            if (filter.IsActive != null && !(filter.IsActive == true || filter.IsActive == false))
-            {
-                return BadRequest(new { success = false, message = "IsActive must be true or false." });
-            }
-
-            var items = await _itemService.GetItemsFilteredAsync(filter);
+            var items = await _itemService.GetAllAsync();
             return Ok(items);
         }
+
+        [HttpPut]
+        [Route("UpdateItem/{itemId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateItem([FromRoute] int itemId, [FromBody] ItemDTO request)
+        {
+            if (request == null)
+                return BadRequest(new { message = "Request body is required." });
+
+            if (itemId <= 0)
+                return BadRequest(new { message = "ItemId must be greater than 0." });
+
+            try
+            {
+                await _itemService.UpdateAsync(itemId, request);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "ITEM_UPDATED",
+                    Resource = $"Item:{itemId}",
+                    Metadata = JsonSerializer.Serialize(request)
+                });
+
+                return Ok(new { message = "Item updated successfully." });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { errorCode = "ITEM_NOT_FOUND", message = "Item not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { errorCode = "INTERNAL_ERROR", message = ex.Message });
+            }
+        }
+
         [HttpDelete]
         [Route("DeleteItem/{itemId}")]
-        public async Task<IActionResult> Delete(int itemId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteItem([FromRoute] int itemId)
         {
             if (itemId <= 0)
-            {
-                return BadRequest(new { success = false, message = "Invalid itemId. Must be greater than zero." });
-            }
+                return BadRequest(new { message = "ItemId must be greater than 0." });
 
             var response = await _itemService.DeleteAsync(itemId);
 
             if (response.IsDeleted)
             {
-                return Ok(new { success = true, message = response.Message });
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "ITEM_DELETED",
+                    Resource = $"Item:{itemId}",
+                    Metadata = JsonSerializer.Serialize(new { itemId })
+                });
+
+                return Ok(new { message = response.Message });
             }
 
-            return BadRequest(new { success = false, message = response.Message });
+            return NotFound(new { message = response.Message });
         }
     }
 }

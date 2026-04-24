@@ -13,7 +13,6 @@ namespace PharmaStock.Infrastructure.Repositories
             this._pharmaStockContext = _pharmaStockContext;
             this._dbset = _pharmaStockContext.Set<T>();
         }
-
         public async System.Threading.Tasks.Task AddAsync(T obj)
         {
             await _dbset.AddAsync(obj);

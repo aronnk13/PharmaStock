@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Drug;
 using PharmaStock.Core.Interfaces.Service;
-using PharmaStock.Core.Services;
 
 namespace PharmaStock.Controllers.Drug
 {
@@ -16,9 +14,17 @@ namespace PharmaStock.Controllers.Drug
     public class DrugController : ControllerBase
     {
         private readonly IDrugService _drugService;
-        public DrugController(IDrugService drugService)
+        private readonly IAuditLogService _auditLogService;
+        public DrugController(IDrugService drugService, IAuditLogService auditLogService)
         {
             _drugService = drugService;
+            _auditLogService = auditLogService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out var id) ? id : 0;
         }
 
         [HttpGet]
@@ -51,6 +57,15 @@ namespace PharmaStock.Controllers.Drug
             try
             {
                 var result = await _drugService.CreateDrug(request);
+
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "DRUG_CREATED",
+                    Resource = $"Drug:{result.DrugId}",
+                    Metadata = JsonSerializer.Serialize(result)
+                });
+
                 return CreatedAtAction(nameof(GetDrugById), new { id = result.DrugId }, result);
             }
             catch (InvalidOperationException ex) when (ex.Message == "DRUG_DUPLICATE")
@@ -80,6 +95,14 @@ namespace PharmaStock.Controllers.Drug
                 var success = await _drugService.UpdateDrug(DrugId,request);
                 if (!success) return NotFound();
 
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "DRUG_UPDATED",
+                    Resource = $"Drug:{DrugId}",
+                    Metadata = JsonSerializer.Serialize(request)
+                });
+
                 return Ok(new { message = "Drug updated successfully" });
             }
             catch (Exception ex)
@@ -99,6 +122,14 @@ namespace PharmaStock.Controllers.Drug
             var response = await _drugService.DeleteDrug(DrugId);
             if (response.IsDeleted)
             {
+                await _auditLogService.CreateLogAsync(new AuditDto
+                {
+                    UserId = GetCurrentUserId(),
+                    Action = "DRUG_DELETED",
+                    Resource = $"Drug:{DrugId}",
+                    Metadata = JsonSerializer.Serialize(new { drugId = DrugId })
+                });
+
                 return Ok(new { message = response.Message });  // NoContent() => 204 delete success
             }
 

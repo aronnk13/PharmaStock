@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PharmaStock.Core.DTO;
 using PharmaStock.Core.DTO.Audit;
-using PharmaStock.Core.Interfaces;
+using PharmaStock.Core.Interfaces.Service;
 
 namespace PharmaStock.Controllers
 {
@@ -13,6 +13,15 @@ namespace PharmaStock.Controllers
     [Route("api/[controller]")]
     public class AuditController(IAuditLogService auditLogService) : ControllerBase
     {
+        [HttpGet]
+        [Route("GetAllAuditLogs")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllAuditLogs()
+        {
+            var logs = await auditLogService.GetAllAsync();
+            return Ok(logs);
+        }
+
         [HttpPost]
         [Route("CreateAudit")]
         public async Task<ActionResult<AuditLog>> CreateAudit(AuditDto dto)

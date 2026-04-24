@@ -17,6 +17,10 @@ namespace PharmaStock.Core.Services
 
         public async Task<GRNItemResponseDTO> CreateAsync(CreateGRNItemDTO dto)
         {
+            // BatchNumber is stored as INT in the DB — validate it is numeric
+            if (!int.TryParse(dto.BatchNumber?.Trim(), out var batchNumberInt))
+                throw new ArgumentException("INVALID_BATCH_NUMBER: Batch number must be numeric (e.g. 2026, 20260424).");
+
             var grn = await _repository.GetGoodsReceiptWithDetailsAsync(dto.GoodsReceiptId)
                 ?? throw new KeyNotFoundException("GRN not found");
 
@@ -29,22 +33,22 @@ namespace PharmaStock.Core.Services
             var item = await _repository.GetItemByIdAsync(poItem.ItemId)
                 ?? throw new KeyNotFoundException("Item not found");
 
-            if (await _repository.IsDuplicateBatchAsync(dto.GoodsReceiptId, poItem.ItemId, dto.BatchNumber))
+            if (await _repository.IsDuplicateBatchAsync(dto.GoodsReceiptId, poItem.ItemId, batchNumberInt))
                 throw new InvalidOperationException("Duplicate batch");
 
             bool overShipmentFlag = dto.ReceivedQty > poItem.OrderedQty;
 
             var entity = new GoodsReceiptItem
             {
-                GoodsReceiptId = dto.GoodsReceiptId,
+                GoodsReceiptId      = dto.GoodsReceiptId,
                 PurchaseOrderItemId = dto.PurchaseOrderItemId,
-                ItemId = poItem.ItemId,
-                BatchNumber = dto.BatchNumber,
-                ExpiryDate = dto.ExpiryDate,
-                ReceivedQty = dto.ReceivedQty,
-                AcceptedQty = dto.AcceptedQty,
-                RejectedQty = dto.RejectedQty,
-                Reason = dto.Reason
+                ItemId              = poItem.ItemId,
+                BatchNumber         = batchNumberInt,           // int
+                ExpiryDate          = dto.ExpiryDate,
+                ReceivedQty         = dto.ReceivedQty,
+                AcceptedQty         = dto.AcceptedQty,
+                RejectedQty         = dto.RejectedQty,
+                Reason              = dto.Reason
             };
 
             await _repository.AddAsync(entity);
@@ -85,6 +89,9 @@ namespace PharmaStock.Core.Services
 
         public async SystemTask UpdateAsync(UpdateGRNItemDTO dto)
         {
+            if (!int.TryParse(dto.BatchNumber?.Trim(), out var batchNumberInt))
+                throw new ArgumentException("INVALID_BATCH_NUMBER: Batch number must be numeric.");
+
             var entity = await _repository.GetItemWithDetailsAsync(dto.GoodsReceiptItemId)
                 ?? throw new KeyNotFoundException("GRNItem not found");
 
@@ -94,12 +101,12 @@ namespace PharmaStock.Core.Services
             if (entity.GoodsReceipt.Status != 1)
                 throw new InvalidOperationException("GRN not Open");
 
-            entity.BatchNumber = dto.BatchNumber;
-            entity.ExpiryDate = dto.ExpiryDate;
+            entity.BatchNumber = batchNumberInt;   // int
+            entity.ExpiryDate  = dto.ExpiryDate;
             entity.ReceivedQty = dto.ReceivedQty;
             entity.AcceptedQty = dto.AcceptedQty;
             entity.RejectedQty = dto.RejectedQty;
-            entity.Reason = dto.Reason;
+            entity.Reason      = dto.Reason;
 
             await _repository.UpdateAsync(entity);
         }

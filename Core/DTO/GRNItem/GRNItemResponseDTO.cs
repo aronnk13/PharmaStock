@@ -2,6 +2,7 @@ namespace PharmaStock.Core.DTO.GRNItem
 {
     public class GRNItemResponseDTO
     {
+
         public int GoodsReceiptItemId { get; set; }
         public int GoodsReceiptId { get; set; }
         public int PurchaseOrderItemId { get; set; }

@@ -12,9 +12,24 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PharmaStock.Core.Validators.Auth;
+using PharmaStock.Core.Validators.Location;
 using PharmaStock.Infrastructure.Services;
+using PharmaStock.Infrastructure.BackgroundJobs;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// CORS Policy for Angular
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
@@ -23,7 +38,7 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginDTOValidator>();
 
 // JWT Token Registration
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"); 
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 
 builder.Services.AddAuthentication(options =>
@@ -41,29 +56,31 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtIssuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<UpsertUserValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateLocationValidator>();
 
 builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(options =>
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "Bearer",
-            BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description = "JWT Authorization header using the Bearer scheme."
-        });
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme."
+    });
 
-        options.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
             {
                 new OpenApiSecurityScheme
                 {
@@ -75,10 +92,13 @@ builder.Services.AddEndpointsApiExplorer();
                 },
                 new string[] {}
             }
-        });
     });
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); 
+});
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 //if not typeof, you would have to specify the type of repository you want to use, but with typeof, you can use any repository you want by just passing the type of it as T.
+
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -88,6 +108,8 @@ builder.Services.AddScoped<IDrugRepository, DrugRepository>();
 builder.Services.AddScoped<IDrugService, DrugService>();
 builder.Services.AddScoped<IPurchaseItemRepository, PurchaseItemRepository>();
 builder.Services.AddScoped<IPurchaseItemService, PurchaseItemService>();
+builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
 
@@ -96,6 +118,9 @@ builder.Services.AddScoped<IBinService, BinService>();
 
 builder.Services.AddScoped<IGrnRepository, GrnRepository>();
 builder.Services.AddScoped<IGrnService, GrnService>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
@@ -110,6 +135,33 @@ builder.Services.AddScoped<IGRNItemRepository, GRNItemRepository>();
 builder.Services.AddScoped<IGRNItemService, GRNItemService>();
 builder.Services.AddScoped<IInventoryLotService, InventoryLotService>();
 builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
+
+builder.Services.AddScoped<IReplenishmentRepository, ReplenishmentRepository>();
+builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
+builder.Services.AddHostedService<ReplenishmentBackgroundService>();
+
+builder.Services.AddScoped<IExpiryWatchRepository, ExpiryWatchRepository>();
+builder.Services.AddScoped<IExpiryWatchService, ExpiryWatchService>();
+
+builder.Services.AddScoped<IInventoryBalanceRepository, InventoryBalanceRepository>();
+builder.Services.AddScoped<IInventoryBalanceService, InventoryBalanceService>();
+
+builder.Services.AddScoped<IInventoryDashboardService, InventoryDashboardService>();
+
+// QCO
+builder.Services.AddScoped<IQuarantineRepository, QuarantineRepository>();
+builder.Services.AddScoped<IRecallNoticeRepository, RecallNoticeRepository>();
+builder.Services.AddScoped<IStockAdjustmentRepository, StockAdjustmentRepository>();
+builder.Services.AddScoped<IColdChainLogRepository, ColdChainLogRepository>();
+builder.Services.AddScoped<IQuarantineService, QuarantineService>();
+builder.Services.AddScoped<IRecallNoticeService, RecallNoticeService>();
+builder.Services.AddScoped<IColdChainLogService, ColdChainLogService>();
+builder.Services.AddScoped<IQCODashboardService, QCODashboardService>();
+
+// Pharmacist
+builder.Services.AddScoped<IDispenseRepository, DispenseRepository>();
+builder.Services.AddScoped<IDispenseService, DispenseService>();
+builder.Services.AddScoped<IPharmacistDashboardService, PharmacistDashboardService>();
 
 builder.Services.AddDbContext<PharmaStock.Models.PharmaStockContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("PharmaDbConnection"))

@@ -42,7 +42,7 @@ namespace PharmaStock.Core.Services
                 BinStorageClass = request.BinStorageClassId,
                 IsQuarantine = request.IsQuarantine,
                 MaxCapacity = request.MaxCapacity,
-                StatusId = true
+                StatusId = request.IsActive
             };
 
             await _binRepository.AddAsync(bin);
@@ -68,7 +68,17 @@ namespace PharmaStock.Core.Services
             if (bin == null)
                 throw new KeyNotFoundException("BIN_NOT_FOUND");
 
-            // 2. Storage class change — block if bin has inventory
+            // 2. Code change — must be unique within the same location
+            if (request.Code != null && request.Code != bin.Code)
+            {
+                var isDuplicate = await _binRepository.IsBinCodeExistsInLocation(bin.LocationId, request.Code, binId);
+                if (isDuplicate)
+                    throw new InvalidOperationException("BIN_CODE_DUPLICATE");
+
+                bin.Code = request.Code;
+            }
+
+            // 3. Storage class change — block if bin has inventory
             if (request.BinStorageClassId.HasValue && request.BinStorageClassId.Value != bin.BinStorageClass)
             {
                 var hasInventory = await _binRepository.HasInventoryAsync(binId);
@@ -82,7 +92,7 @@ namespace PharmaStock.Core.Services
                 bin.BinStorageClass = request.BinStorageClassId.Value;
             }
 
-            // 3. Removing quarantine flag — block if bin still has stock
+            // 4. Removing quarantine flag — block if bin still has stock
             if (request.IsQuarantine.HasValue && bin.IsQuarantine && !request.IsQuarantine.Value)
             {
                 var hasInventory = await _binRepository.HasInventoryAsync(binId);
@@ -93,7 +103,7 @@ namespace PharmaStock.Core.Services
             if (request.IsQuarantine.HasValue)
                 bin.IsQuarantine = request.IsQuarantine.Value;
 
-            // 4. Deactivating bin — block if inventory or open put-away tasks exist
+            // 5. Deactivating bin — block if inventory or open put-away tasks exist
             if (request.IsActive.HasValue && !request.IsActive.Value)
             {
                 var hasInventory = await _binRepository.HasInventoryAsync(binId);
