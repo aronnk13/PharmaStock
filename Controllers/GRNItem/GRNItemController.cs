@@ -63,6 +63,24 @@ namespace PharmaStock.Controllers.GRNItem
             }
         }
 
+        [HttpGet("GetGRNItem/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _service.GetByIdAsync(id);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [HttpGet("GetGRNItems")]
         public async Task<IActionResult> Get([FromQuery] GRNItemFilterDTO? filter)
         {

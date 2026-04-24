@@ -55,14 +55,23 @@ namespace PharmaStock.Core.Services
 
             return new GRNItemResponseDTO
             {
-                BatchNumber      = entity.BatchNumber.ToString(), // int → string for response
-                ExpiryDate       = entity.ExpiryDate,
-                ReceivedQty      = entity.ReceivedQty,
-                AcceptedQty      = entity.AcceptedQty,
-                RejectedQty      = entity.RejectedQty,
-                Reason           = entity.Reason,
+                GoodsReceiptItemId = entity.GoodsReceiptItemId,
+                GoodsReceiptId = entity.GoodsReceiptId,
+                PurchaseOrderItemId = entity.PurchaseOrderItemId,
+                BatchNumber = entity.BatchNumber,
+                ExpiryDate = entity.ExpiryDate,
+                ReceivedQty = entity.ReceivedQty,
+                AcceptedQty = entity.AcceptedQty,
+                RejectedQty = entity.RejectedQty,
+                Reason = entity.Reason,
                 OverShipmentFlag = overShipmentFlag
             };
+        }
+
+        public async Task<GRNItemResponseDTO> GetByIdAsync(int id)
+        {
+            return await _repository.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException("GRNItem not found");
         }
 
         public async Task<GRNItemsPagedResponseDTO> GetAsync(GRNItemFilterDTO filter)
