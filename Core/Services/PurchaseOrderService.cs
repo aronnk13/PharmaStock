@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PharmaStock.Core.DTO.GoodsReceipt;
 using PharmaStock.Core.DTO.PurchaseOrder;
 using PharmaStock.Core.Interfaces.Repository;
@@ -9,10 +10,12 @@ namespace PharmaStock.Core.Services
     public class PurchaseOrderService : IPurchaseOrderService
     {
         private readonly IPurchaseOrderRepository _repo;
+        private readonly PharmaStockContext _context;
 
-        public PurchaseOrderService(IPurchaseOrderRepository repo)
+        public PurchaseOrderService(IPurchaseOrderRepository repo, PharmaStockContext context)
         {
             _repo = repo;
+            _context = context;
         }
 
         public async Task<IEnumerable<PurchaseOrderResponseDTO>> GetAllAsync()
@@ -62,7 +65,30 @@ namespace PharmaStock.Core.Services
                 po.ExpectedDate = dto.ExpectedDate.Value;
 
             if (dto.PurchaseOrderStatusId.HasValue)
-                po.PurchaseOrderStatusId = dto.PurchaseOrderStatusId.Value;
+            {
+                var currentStatus = po.PurchaseOrderStatusId;
+                var newStatus = dto.PurchaseOrderStatusId.Value;
+
+                // Closed PO is final — cannot go back
+                if (currentStatus == 3)
+                    throw new InvalidOperationException("A Closed Purchase Order cannot be modified.");
+
+                // Cannot approve/close without items
+                if (newStatus >= 2)
+                {
+                    var hasItems = await _repo.HasItemsAsync(id);
+                    if (!hasItems)
+                        throw new InvalidOperationException("Cannot approve a Purchase Order with no items.");
+
+                    // Cannot approve if any item has zero unit price
+                    var hasZeroPrice = await _context.PurchaseItems
+                        .AnyAsync(pi => pi.PurchaseOrderId == id && pi.UnitPrice <= 0);
+                    if (hasZeroPrice)
+                        throw new InvalidOperationException("Cannot approve a Purchase Order with items that have no unit price.");
+                }
+
+                po.PurchaseOrderStatusId = newStatus;
+            }
 
             await _repo.UpdateAsync(po);
 
@@ -75,6 +101,20 @@ namespace PharmaStock.Core.Services
             var po = await _repo.GetByIdAsync(id);
             if (po == null)
                 throw new KeyNotFoundException("Purchase order not found.");
+
+            // Only Draft POs can be deleted
+            if (po.PurchaseOrderStatusId != 1)
+                throw new InvalidOperationException("Only Draft purchase orders can be deleted.");
+
+            // Check for GRNs — cannot delete if goods have been received
+            var hasGrns = await _context.GoodsReciepts.AnyAsync(g => g.PurchaseOrderId == id);
+            if (hasGrns)
+                throw new InvalidOperationException("Cannot delete a purchase order that has goods receipts.");
+
+            // Delete purchase items first to avoid FK violation
+            var items = await _context.PurchaseItems.Where(i => i.PurchaseOrderId == id).ToListAsync();
+            _context.PurchaseItems.RemoveRange(items);
+            await _context.SaveChangesAsync();
 
             await _repo.DeleteAsync(id);
         }

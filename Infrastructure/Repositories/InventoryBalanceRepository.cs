@@ -13,7 +13,7 @@ namespace PharmaStock.Infrastructure.Repositories
             return await _pharmaStockContext.InventoryBalances
                 .Include(b => b.Location)
                 .Include(b => b.Bin)
-                .Include(b => b.Item)
+                .Include(b => b.Item).ThenInclude(i => i.Drug)
                 .Include(b => b.InventoryLot)
                 .Where(b => b.LocationId == locationId)
                 .ToListAsync();
@@ -24,7 +24,7 @@ namespace PharmaStock.Infrastructure.Repositories
             return await _pharmaStockContext.InventoryBalances
                 .Include(b => b.Location)
                 .Include(b => b.Bin)
-                .Include(b => b.Item)
+                .Include(b => b.Item).ThenInclude(i => i.Drug)
                 .Include(b => b.InventoryLot)
                 .ToListAsync();
         }
@@ -34,7 +34,7 @@ namespace PharmaStock.Infrastructure.Repositories
             return await _pharmaStockContext.InventoryBalances
                 .Include(b => b.Location)
                 .Include(b => b.Bin)
-                .Include(b => b.Item)
+                .Include(b => b.Item).ThenInclude(i => i.Drug)
                 .Include(b => b.InventoryLot)
                 .Where(b => b.ItemId == itemId)
                 .ToListAsync();
@@ -45,7 +45,7 @@ namespace PharmaStock.Infrastructure.Repositories
             return await _pharmaStockContext.InventoryBalances
                 .Include(b => b.Location)
                 .Include(b => b.Bin)
-                .Include(b => b.Item)
+                .Include(b => b.Item).ThenInclude(i => i.Drug)
                 .Include(b => b.InventoryLot)
                 .Where(b => (b.QuantityOnHand - b.ReservedQty) <= threshold)
                 .ToListAsync();

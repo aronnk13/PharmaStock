@@ -11,5 +11,6 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<bool> IsPurchaseOrderIdValid(int purchaseOrderId);
         Task<bool> IsItemIdValid(int itemId);
         Task<bool> HasGRNAsync(int purchaseItemId);
+        Task<int> GetPoStatusAsync(int purchaseOrderId);
     }
 }

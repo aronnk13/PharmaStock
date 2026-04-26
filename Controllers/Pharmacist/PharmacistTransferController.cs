@@ -90,5 +90,70 @@ namespace PharmaStock.Controllers.Pharmacist
 
             return Ok(new { success = true });
         }
+
+        [HttpPatch("{id}/receive")]
+        public async Task<IActionResult> Receive(int id)
+        {
+            var transfer = await _context.TransferOrders
+                .Include(t => t.TransferItems)
+                .FirstOrDefaultAsync(t => t.TransferOrderId == id);
+
+            if (transfer == null) return NotFound(new { message = "Transfer order not found." });
+            if (transfer.Status != 2) return BadRequest(new { message = "Transfer must be In Progress to receive." });
+
+            foreach (var item in transfer.TransferItems)
+            {
+                // Deduct from source
+                var sourceBalance = await _context.InventoryBalances
+                    .FirstOrDefaultAsync(b => b.LocationId == transfer.FromLocationId
+                                           && b.InventoryLotId == item.InventoryLotId
+                                           && b.ItemId == item.ItemId);
+                if (sourceBalance != null)
+                {
+                    sourceBalance.QuantityOnHand = Math.Max(0, sourceBalance.QuantityOnHand - item.Quantity);
+                }
+
+                // Add to destination
+                var destBalance = await _context.InventoryBalances
+                    .FirstOrDefaultAsync(b => b.LocationId == transfer.ToLocationId
+                                           && b.InventoryLotId == item.InventoryLotId
+                                           && b.ItemId == item.ItemId);
+                if (destBalance != null)
+                {
+                    destBalance.QuantityOnHand += item.Quantity;
+                }
+                else
+                {
+                    // Get first bin at destination location
+                    var destBin = await _context.Bins
+                        .FirstOrDefaultAsync(b => b.LocationId == transfer.ToLocationId);
+                    if (destBin != null)
+                    {
+                        _context.InventoryBalances.Add(new PharmaStock.Models.InventoryBalance
+                        {
+                            LocationId = transfer.ToLocationId,
+                            BinId = destBin.BinId,
+                            ItemId = item.ItemId,
+                            InventoryLotId = item.InventoryLotId,
+                            QuantityOnHand = item.Quantity,
+                            ReservedQty = 0
+                        });
+                    }
+                }
+            }
+
+            transfer.Status = 3; // Completed
+            await _context.SaveChangesAsync();
+
+            await _auditLogService.CreateLogAsync(new AuditDto
+            {
+                UserId = GetCurrentUserId(),
+                Action = "TRANSFER_RECEIVED",
+                Resource = $"TransferOrder:{id}",
+                Metadata = JsonSerializer.Serialize(new { transferOrderId = id })
+            });
+
+            return Ok(new { success = true });
+        }
     }
 }

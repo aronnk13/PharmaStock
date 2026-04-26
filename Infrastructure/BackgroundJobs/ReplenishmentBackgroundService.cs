@@ -46,8 +46,8 @@ namespace PharmaStock.Infrastructure.BackgroundJobs
                 var result = await service.RunReplenishmentCheckAsync();
 
                 _logger.LogInformation(
-                    "Replenishment check complete. New requests created: {Count}",
-                    result.NewRequestsCreated);
+                    "Replenishment check complete. TOs: {TO}, POs: {PO}, Skipped: {Skip}",
+                    result.TransferOrdersCreated, result.PurchaseOrdersCreated, result.Skipped);
             }
             catch (Exception ex)
             {

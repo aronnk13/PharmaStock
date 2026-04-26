@@ -47,5 +47,6 @@ namespace PharmaStock.Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+
     }
 }

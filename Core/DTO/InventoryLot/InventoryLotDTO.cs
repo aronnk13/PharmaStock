@@ -12,6 +12,8 @@ namespace PharmaStock.Core.DTO.InventoryLot
 
         public int ItemId { get; set; }
 
+        public string? ItemName { get; set; }
+
         public string BatchNumber { get; set; } = string.Empty;
 
         public DateOnly ExpiryDate { get; set; }

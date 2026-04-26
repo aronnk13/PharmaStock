@@ -22,8 +22,13 @@ namespace PharmaStock.Infrastructure.Repositories
 
         public Task<bool> IsPurchaseOrderIdValid(int purchaseOrderId)
         {
-            return context.PurchaseOrders.AnyAsync(e=> e.PurchaseOrderId == purchaseOrderId);
+            return context.PurchaseOrders.AnyAsync(e => e.PurchaseOrderId == purchaseOrderId);
         }
 
+        public async Task<int> GetPoStatusAsync(int purchaseOrderId)
+        {
+            var po = await context.PurchaseOrders.FindAsync(purchaseOrderId);
+            return po?.PurchaseOrderStatusId ?? 0;
+        }
     }
 }

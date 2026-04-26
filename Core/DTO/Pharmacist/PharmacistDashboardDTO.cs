@@ -5,7 +5,6 @@ namespace PharmaStock.Core.DTO.Pharmacist
         public int TotalStockItems { get; set; }
         public int PendingIncomingTransfers { get; set; }
         public int TodayDispenses { get; set; }
-        public int NearExpiryAtLocation { get; set; }
         public List<RecentDispenseDTO> RecentDispenses { get; set; } = new();
         public List<IncomingTransferSummaryDTO> IncomingTransferSummary { get; set; } = new();
     }

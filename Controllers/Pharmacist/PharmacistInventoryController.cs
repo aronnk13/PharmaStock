@@ -18,20 +18,28 @@ namespace PharmaStock.Controllers.Pharmacist
             var items = locationId.HasValue
                 ? await _repo.GetByLocationAsync(locationId.Value)
                 : await _repo.GetAllWithDetailsAsync();
-            var result = items.Select(b => new
-            {
-                b.InventoryBalanceId,
-                b.LocationId,
-                LocationName = b.Location?.Name,
-                b.ItemId,
-                ItemName = b.Item?.Drug?.GenericName,
-                b.InventoryLotId,
-                BatchNumber = b.InventoryLot?.BatchNumber,
-                ExpiryDate = b.InventoryLot?.ExpiryDate,
-                b.QuantityOnHand,
-                b.ReservedQty,
-                AvailableQty = b.QuantityOnHand - b.ReservedQty
-            });
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var result = items
+                .Where(b => b.InventoryLot != null
+                         && b.InventoryLot.Status == 1          // Active lots only
+                         && b.InventoryLot.ExpiryDate > today)   // Not expired (today still dispensable)
+                .Select(b => new
+                {
+                    b.InventoryBalanceId,
+                    b.LocationId,
+                    LocationName = b.Location?.Name,
+                    b.ItemId,
+                    ItemName = b.Item?.Drug?.GenericName,
+                    b.InventoryLotId,
+                    BatchNumber = b.InventoryLot?.BatchNumber,
+                    ExpiryDate = b.InventoryLot?.ExpiryDate,
+                    b.QuantityOnHand,
+                    b.ReservedQty,
+                    AvailableQty = b.QuantityOnHand - b.ReservedQty
+                });
+
             return Ok(result);
         }
     }

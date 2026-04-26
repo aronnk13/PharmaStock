@@ -49,8 +49,11 @@ namespace PharmaStock.Infrastructure.Repositories
 
         public async Task<bool> HasOpenRequestAsync(int locationId, int itemId)
         {
+            // Block if a Pending (1) OR Converted (2) request exists — a TO or PO is already
+            // in progress. The RunCheck auto-closes these when stock arrives (>= MinLevel),
+            // so a new request will be raised on the next cycle after replenishment completes.
             return await _pharmaStockContext.ReplenishmentRequests
-                .AnyAsync(r => r.LocationId == locationId && r.ItemId == itemId && r.Status == 1);
+                .AnyAsync(r => r.LocationId == locationId && r.ItemId == itemId && (r.Status == 1 || r.Status == 2));
         }
 
         // ── Rules ──────────────────────────────────────────────────────────────

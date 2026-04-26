@@ -105,7 +105,7 @@ namespace PharmaStock.Infrastructure.Repositories
         {
             // Open status = 1 (OPEN), look up dynamically
             var openStatusIds = await _context.GoodsReceiptStatuses
-                .Where(s => s.Status == "OPEN" || s.Status == "Open" || s.Status == "PendingQC")
+                .Where(s => s.Status == "Open")
                 .Select(s => s.GoodsReceiptStatusId)
                 .ToListAsync();
 

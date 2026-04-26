@@ -181,23 +181,22 @@ namespace PharmaStock.Controllers.Replenishment
         [HttpPost("run-check")]
         public async Task<IActionResult> RunCheck()
         {
-            var result = await _service.RunReplenishmentCheckAsync();
-
-            await _auditLogService.CreateLogAsync(new AuditDto
+            try
             {
-                UserId = GetCurrentUserId(),
-                Action = "REPLENISHMENT_CHECK_RUN",
-                Resource = "ReplenishmentCheck",
-                Metadata = JsonSerializer.Serialize(result)
-            });
-
-            return Ok(result);
+                var result = await _service.RunReplenishmentCheckAsync();
+                try { await _auditLogService.CreateLogAsync(new AuditDto { UserId = GetCurrentUserId(), Action = "REPLENISHMENT_CHECK_RUN", Resource = "ReplenishmentCheck", Metadata = JsonSerializer.Serialize(result) }); } catch { }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPost("{reqId}/convert")]
-        public async Task<IActionResult> ConvertToTransferOrder(int reqId, [FromQuery] int fromLocationId = 1)
+        public async Task<IActionResult> ConvertToTransferOrder(int reqId)
         {
-            var result = await _service.ConvertToTransferOrderAsync(reqId, fromLocationId);
+            var result = await _service.ConvertToTransferOrderAsync(reqId);
             if (result == null) return NotFound(new { message = "Request not found or not in Open status." });
 
             await _auditLogService.CreateLogAsync(new AuditDto

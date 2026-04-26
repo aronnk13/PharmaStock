@@ -48,22 +48,32 @@ namespace PharmaStock.Core.DTO.Replenishment
     public class RunCheckResultDTO
     {
         public string Message { get; set; } = null!;
-        public int NewRequestsCreated { get; set; }
+        public int TransferOrdersCreated { get; set; }
+        public int PurchaseOrdersCreated { get; set; }
+        public int Skipped { get; set; }
     }
 
     public class ConvertToTransferOrderResultDTO
     {
-        public int TransferOrderId { get; set; }
-        public int FromLocationId { get; set; }
+        public string ActionTaken { get; set; } = null!; // "TransferOrder" or "PurchaseOrder"
+
+        // Transfer Order fields (when stock found elsewhere)
+        public int? TransferOrderId { get; set; }
+        public int? FromLocationId { get; set; }
         public string? FromLocationName { get; set; }
-        public int ToLocationId { get; set; }
+        public int? ToLocationId { get; set; }
         public string? ToLocationName { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public int Status { get; set; }
+        public bool TransferItemCreated { get; set; }
+
+        // Purchase Order fields (when no stock anywhere)
+        public int? PurchaseOrderId { get; set; }
+        public string? VendorName { get; set; }
+
+        // Common
         public int ReplenishmentRequestId { get; set; }
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public int SuggestedQty { get; set; }
-        public bool TransferItemCreated { get; set; }
+        public string Message { get; set; } = null!;
     }
 }

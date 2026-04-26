@@ -6,7 +6,7 @@ namespace PharmaStock.Core.DTO.GRNItem
         public int GoodsReceiptItemId { get; set; }
         public int GoodsReceiptId { get; set; }
         public int PurchaseOrderItemId { get; set; }
-        public int BatchNumber { get; set; }
+        public string BatchNumber { get; set; } = null!;
         public DateOnly ExpiryDate { get; set; }
         public int ReceivedQty { get; set; }
         public int AcceptedQty { get; set; }

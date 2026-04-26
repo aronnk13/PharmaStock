@@ -71,8 +71,8 @@ namespace PharmaStock.Infrastructure.Repositories
                 .Include(i => i.PurchaseOrderItem)
                 .AsQueryable();
 
-            if (filter.BatchNumber.HasValue)
-                query = query.Where(i => i.BatchNumber == filter.BatchNumber.Value);
+            if (!string.IsNullOrEmpty(filter.BatchNumber))
+                query = query.Where(i => i.BatchNumber == filter.BatchNumber);
 
             if (filter.ExpiryDate.HasValue)
                 query = query.Where(i => i.ExpiryDate == filter.ExpiryDate.Value);
@@ -100,7 +100,7 @@ namespace PharmaStock.Infrastructure.Repositories
             return (items, totalCount);
         }
 
-        public async Task<bool> IsDuplicateBatchAsync(int goodsReceiptId, int itemId, int batchNumber)
+        public async Task<bool> IsDuplicateBatchAsync(int goodsReceiptId, int itemId, string batchNumber)
         {
             return await _context.GoodsReceiptItems.AnyAsync(i =>
                 i.GoodsReceiptId == goodsReceiptId &&

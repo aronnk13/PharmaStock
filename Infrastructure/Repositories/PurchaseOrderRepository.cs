@@ -75,19 +75,21 @@ namespace PharmaStock.Infrastructure.Repositories
 
         public async Task<List<ApprovedPendingGrnDTO>> GetApprovedPendingGrnAsync()
         {
-            var approvedStatusIds = await _context.PurchaseOrderStatuses
-                .Where(s => s.Status == "Approved")
-                .Select(s => s.PurchaseOrderStatusId)
-                .ToListAsync();
-
-            var poIdsWithGrn = await _context.GoodsReciepts
+            // POs with an Open (awaiting QC) GRN cannot receive more stock yet
+            var openGrnPoIds = await _context.GoodsReciepts
+                .Where(g => g.StatusNavigation.Status == "Open")
                 .Select(g => g.PurchaseOrderId)
                 .Distinct()
                 .ToListAsync();
 
+            var receivableStatusIds = await _context.PurchaseOrderStatuses
+                .Where(s => s.Status == "Approved" || s.Status == "PartiallyReceived")
+                .Select(s => s.PurchaseOrderStatusId)
+                .ToListAsync();
+
             return await _context.PurchaseOrders
-                .Where(po => approvedStatusIds.Contains(po.PurchaseOrderStatusId)
-                          && !poIdsWithGrn.Contains(po.PurchaseOrderId))
+                .Where(po => receivableStatusIds.Contains(po.PurchaseOrderStatusId)
+                          && !openGrnPoIds.Contains(po.PurchaseOrderId))
                 .Select(po => new ApprovedPendingGrnDTO
                 {
                     PurchaseOrderId = po.PurchaseOrderId,
@@ -105,29 +107,53 @@ namespace PharmaStock.Infrastructure.Repositories
 
         public async Task<PoWithItemsDTO?> GetWithItemsAsync(int id)
         {
-            return await _context.PurchaseOrders
-                .Where(po => po.PurchaseOrderId == id)
-                .Select(po => new PoWithItemsDTO
+            var po = await _context.PurchaseOrders
+                .Include(p => p.Vendor)
+                .Include(p => p.Location)
+                .Include(p => p.PurchaseOrderStatus)
+                .Include(p => p.PurchaseItems).ThenInclude(i => i.Item).ThenInclude(i => i.Drug)
+                .FirstOrDefaultAsync(p => p.PurchaseOrderId == id);
+
+            if (po == null) return null;
+
+            // Sum accepted qty per itemId across all completed GRNs for this PO
+            var acceptedByItem = await _context.GoodsReceiptItems
+                .Where(g => g.GoodsReceipt.PurchaseOrderId == id)
+                .GroupBy(g => g.ItemId)
+                .Select(g => new { ItemId = g.Key, Accepted = g.Sum(x => x.AcceptedQty) })
+                .ToListAsync();
+
+            var acceptedMap = acceptedByItem.ToDictionary(x => x.ItemId, x => x.Accepted);
+
+            return new PoWithItemsDTO
+            {
+                PurchaseOrderId = po.PurchaseOrderId,
+                VendorId        = po.VendorId,
+                VendorName      = po.Vendor.Name,
+                LocationId      = po.LocationId,
+                LocationName    = po.Location.Name,
+                OrderDate       = po.OrderDate,
+                ExpectedDate    = po.ExpectedDate,
+                Status          = po.PurchaseOrderStatus.Status,
+                Items = po.PurchaseItems.Select(i =>
                 {
-                    PurchaseOrderId = po.PurchaseOrderId,
-                    VendorId        = po.VendorId,
-                    VendorName      = po.Vendor.Name,
-                    LocationId      = po.LocationId,
-                    LocationName    = po.Location.Name,
-                    OrderDate       = po.OrderDate,
-                    ExpectedDate    = po.ExpectedDate,
-                    Status          = po.PurchaseOrderStatus.Status,
-                    Items = po.PurchaseItems.Select(i => new PoItemDetailDTO
+                    var accepted = acceptedMap.GetValueOrDefault(i.ItemId, 0);
+                    return new PoItemDetailDTO
                     {
                         PurchaseItemId = i.PurchaseItemId,
                         ItemId         = i.ItemId,
                         ItemName       = i.Item.Drug.GenericName,
                         OrderedQty     = i.OrderedQty,
+                        AcceptedQty    = accepted,
+                        OutstandingQty = Math.Max(0, i.OrderedQty - accepted),
                         UnitPrice      = i.UnitPrice,
                         TaxPct         = i.TaxPct
-                    }).ToList()
-                })
-                .FirstOrDefaultAsync();
+                    };
+                }).ToList()
+            };
         }
+
+        public Task<bool> HasItemsAsync(int purchaseOrderId) =>
+            _context.PurchaseItems.AnyAsync(i => i.PurchaseOrderId == purchaseOrderId);
     }
 }

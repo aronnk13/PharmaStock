@@ -5,7 +5,7 @@ using PharmaStock.Core.Interfaces.Service;
 namespace PharmaStock.Controllers.QCO
 {
     [ApiController]
-    [Authorize(Roles = "QualityOfficer")]
+    [Authorize(Roles = "QualityComplianceOfficer")]
     [Route("api/qco-dashboard")]
     public class QCODashboardController : ControllerBase
     {
@@ -15,8 +15,15 @@ namespace PharmaStock.Controllers.QCO
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
-            var result = await _service.GetDashboardAsync();
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetDashboardAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

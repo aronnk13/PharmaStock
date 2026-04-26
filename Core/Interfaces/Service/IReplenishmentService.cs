@@ -19,6 +19,6 @@ namespace PharmaStock.Core.Interfaces.Service
 
         // Auto replenishment
         Task<RunCheckResultDTO> RunReplenishmentCheckAsync();
-        Task<ConvertToTransferOrderResultDTO?> ConvertToTransferOrderAsync(int reqId, int fromLocationId = 1);
+        Task<ConvertToTransferOrderResultDTO?> ConvertToTransferOrderAsync(int reqId);
     }
 }

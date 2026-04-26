@@ -46,6 +46,10 @@ namespace PharmaStock.Core.Services
 
         public async Task<PurchaseItemResponseDTO> AddPIAsync(CreatePurchaseItemDTO dto)
         {
+            var poStatus = await pirepo.GetPoStatusAsync(dto.PurchaseOrderId);
+            if (poStatus == 3)
+                throw new Exception("Cannot add items to a Closed Purchase Order.");
+
             var isItemvalid = await pirepo.IsItemIdValid(dto.ItemId);
             var ispoidvalid = await pirepo.IsPurchaseOrderIdValid(dto.PurchaseOrderId);
             if (isItemvalid && ispoidvalid)
@@ -89,14 +93,15 @@ namespace PharmaStock.Core.Services
         {
             var existingPI = await pirepo.GetByIdAsync(id);
             if (existingPI == null)
-            {
                 throw new Exception("PurchaseItem not found");
-            }
+
+            var poStatus = await pirepo.GetPoStatusAsync(existingPI.PurchaseOrderId);
+            if (poStatus == 3)
+                throw new Exception("Cannot delete items from a Closed Purchase Order.");
+
             var hasGRN = await pirepo.HasGRNAsync(id);
             if (hasGRN)
-            {
                 throw new Exception("POItem cannot be deleted after receipt");
-            }
             await pirepo.DeleteAsync(id);
             var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst("userId")?.Value;
             int userId = userIdClaim != null ? int.Parse(userIdClaim) : 0;
@@ -112,17 +117,17 @@ namespace PharmaStock.Core.Services
 
         public async Task<PurchaseItemResponseDTO> UpdatePIAsync(int id, UpdatePurchaseItemDTO dto)
         {
-
             var existingPI = await pirepo.GetByIdAsync(id);
             if (existingPI == null)
-            {
                 throw new Exception("PurchaseItem not found");
-            }
+
+            var poStatus = await pirepo.GetPoStatusAsync(existingPI.PurchaseOrderId);
+            if (poStatus == 3)
+                throw new Exception("Cannot modify items on a Closed Purchase Order.");
+
             var hasGRN = await pirepo.HasGRNAsync(id);
             if (hasGRN)
-            {
                 throw new Exception("POItem cannot be modified after receipt");
-            }
             existingPI.OrderedQty = dto.OrderedQty;
             existingPI.UnitPrice = dto.UnitPrice;
             existingPI.TaxPct = dto.TaxPct;

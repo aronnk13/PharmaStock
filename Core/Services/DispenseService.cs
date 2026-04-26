@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PharmaStock.Core.DTO.Pharmacist;
 using PharmaStock.Core.Interfaces.Repository;
 using PharmaStock.Core.Interfaces.Service;
@@ -8,8 +9,13 @@ namespace PharmaStock.Core.Services
     public class DispenseService : IDispenseService
     {
         private readonly IDispenseRepository _repo;
+        private readonly PharmaStockContext _context;
 
-        public DispenseService(IDispenseRepository repo) => _repo = repo;
+        public DispenseService(IDispenseRepository repo, PharmaStockContext context)
+        {
+            _repo = repo;
+            _context = context;
+        }
 
         public async Task<IEnumerable<DispenseRefDTO>> GetAllAsync()
         {
@@ -31,6 +37,20 @@ namespace PharmaStock.Core.Services
 
         public async Task<DispenseRefDTO> CreateAsync(CreateDispenseRefDTO dto)
         {
+            // Check and deduct from InventoryBalance
+            var balance = await _context.InventoryBalances
+                .FirstOrDefaultAsync(b => b.LocationId == dto.LocationId
+                                       && b.ItemId == dto.ItemId
+                                       && b.InventoryLotId == dto.InventoryLotId);
+
+            if (balance == null)
+                throw new Exception("No stock found at this location for the selected item/lot.");
+
+            if (balance.QuantityOnHand < dto.Quantity)
+                throw new Exception($"Insufficient stock. Available: {balance.QuantityOnHand}, Requested: {dto.Quantity}.");
+
+            balance.QuantityOnHand -= dto.Quantity;
+
             var entity = new DispenseRef
             {
                 LocationId = dto.LocationId,
@@ -39,9 +59,12 @@ namespace PharmaStock.Core.Services
                 Quantity = dto.Quantity,
                 Destination = dto.Destination,
                 DispenseDate = DateTime.UtcNow,
-                Status = false
+                Status = true
             };
+
             await _repo.AddAsync(entity);
+            await _context.SaveChangesAsync();
+
             var created = await _repo.GetByIdWithDetailsAsync(entity.DispenseRefId);
             return Map(created ?? entity);
         }

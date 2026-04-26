@@ -12,5 +12,6 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<int> GetDefaultStatusIdAsync();
         Task<List<ApprovedPendingGrnDTO>> GetApprovedPendingGrnAsync();
         Task<PoWithItemsDTO?> GetWithItemsAsync(int id);
+        Task<bool> HasItemsAsync(int purchaseOrderId);
     }
 }

@@ -9,7 +9,7 @@ public partial class InventoryLot
 
     public int ItemId { get; set; }
 
-    public int BatchNumber { get; set; }
+    public string BatchNumber { get; set; } = null!;
 
     public DateOnly ExpiryDate { get; set; }
 

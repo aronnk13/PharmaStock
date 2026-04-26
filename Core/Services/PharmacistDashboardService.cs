@@ -9,18 +9,15 @@ namespace PharmaStock.Core.Services
         private readonly IInventoryBalanceRepository _balanceRepo;
         private readonly ITransferOrderRepository _transferRepo;
         private readonly IDispenseRepository _dispenseRepo;
-        private readonly IExpiryWatchRepository _expiryRepo;
 
         public PharmacistDashboardService(
             IInventoryBalanceRepository balanceRepo,
             ITransferOrderRepository transferRepo,
-            IDispenseRepository dispenseRepo,
-            IExpiryWatchRepository expiryRepo)
+            IDispenseRepository dispenseRepo)
         {
             _balanceRepo = balanceRepo;
             _transferRepo = transferRepo;
             _dispenseRepo = dispenseRepo;
-            _expiryRepo = expiryRepo;
         }
 
         public async Task<PharmacistDashboardDTO> GetDashboardAsync(int? locationId)
@@ -42,11 +39,6 @@ namespace PharmaStock.Core.Services
                 ? await _dispenseRepo.GetRecentByLocationAsync(locationId.Value, 5)
                 : await _dispenseRepo.GetRecentAsync(5);
 
-            var nearExpiry = await _expiryRepo.GetNearExpiryAsync(30);
-            var nearExpiryAtLocation = locationId.HasValue
-                ? nearExpiry.Where(e => e.InventoryLot?.InventoryBalances.Any(b => b.LocationId == locationId.Value) == true).Count()
-                : nearExpiry.Count();
-
             var recentTransfers = locationId.HasValue
                 ? allTransfers.Where(t => t.ToLocationId == locationId.Value).OrderByDescending(t => t.CreatedDate).Take(5).ToList()
                 : allTransfers.OrderByDescending(t => t.CreatedDate).Take(5).ToList();
@@ -56,7 +48,6 @@ namespace PharmaStock.Core.Services
                 TotalStockItems = totalStockItems,
                 PendingIncomingTransfers = pendingIncoming,
                 TodayDispenses = todayDispenses,
-                NearExpiryAtLocation = nearExpiryAtLocation,
                 RecentDispenses = recentDispenses.Select(d => new RecentDispenseDTO
                 {
                     DispenseRefId = d.DispenseRefId,

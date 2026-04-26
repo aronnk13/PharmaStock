@@ -17,24 +17,18 @@ namespace PharmaStock.Infrastructure.Services
         public async Task<InventoryDashboardDTO> GetDashboardStatsAsync()
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var in90Days = today.AddDays(90);
-            var in30Days = today.AddDays(30);
 
             var totalLots = await _context.InventoryLots.CountAsync();
-            var nearExpiry = await _context.InventoryLots
-                .Where(l => l.ExpiryDate <= in90Days && l.ExpiryDate >= today)
-                .CountAsync();
-            var expired = await _context.InventoryLots
-                .Where(l => l.ExpiryDate < today)
-                .CountAsync();
+
+            // Fetch in memory to avoid DateOnly SQL translation issues
+            var allLots = await _context.InventoryLots.Select(l => l.ExpiryDate).ToListAsync();
+            var expired = allLots.Count(d => d < today);
+
             var openTransfers = await _context.TransferOrders
                 .Where(t => t.Status == 1)
                 .CountAsync();
             var pendingReplenishments = await _context.ReplenishmentRequests
                 .Where(r => r.Status == 1)
-                .CountAsync();
-            var activeWatches = await _context.ExpiryWatches
-                .Where(e => e.Status == true)
                 .CountAsync();
             var totalLocations = await _context.Locations.CountAsync();
             var lowStock = await _context.InventoryBalances
@@ -57,33 +51,15 @@ namespace PharmaStock.Infrastructure.Services
                 })
                 .ToListAsync();
 
-            var nearExpiryAlerts = await _context.InventoryLots
-                .Include(l => l.Item).ThenInclude(i => i.Drug)
-                .Where(l => l.ExpiryDate <= in30Days && l.ExpiryDate >= today)
-                .OrderBy(l => l.ExpiryDate)
-                .Take(5)
-                .Select(l => new NearExpiryAlertDTO
-                {
-                    InventoryLotId = l.InventoryLotId,
-                    ItemName = l.Item.Drug.GenericName,
-                    BatchNumber = l.BatchNumber.ToString(),
-                    ExpiryDate = l.ExpiryDate,
-                    DaysToExpire = l.ExpiryDate.DayNumber - today.DayNumber
-                })
-                .ToListAsync();
-
             return new InventoryDashboardDTO
             {
                 TotalInventoryLots = totalLots,
-                NearExpiryItems = nearExpiry,
                 ExpiredItems = expired,
                 OpenTransferOrders = openTransfers,
                 PendingReplenishments = pendingReplenishments,
-                ActiveExpiryWatches = activeWatches,
                 TotalLocations = totalLocations,
                 LowStockItems = lowStock,
-                RecentTransfers = recentTransfers,
-                NearExpiryAlerts = nearExpiryAlerts
+                RecentTransfers = recentTransfers
             };
         }
     }

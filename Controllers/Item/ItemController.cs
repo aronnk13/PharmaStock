@@ -10,7 +10,7 @@ namespace PharmaStock.Controllers.Item
 {
     [ApiController]
     [Route("api/items")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,ProcurementOfficer,Pharmacist,InventoryController,QualityOfficer")]
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;

@@ -109,107 +109,254 @@ namespace PharmaStock.Core.Services
 
         public async Task<RunCheckResultDTO> RunReplenishmentCheckAsync()
         {
-            var rules = await _repo.GetAllRulesAsync();
-            int created = 0;
+            var rules  = await _repo.GetAllRulesAsync();
+            int poCreated = 0;
+            int skipped   = 0;
+            var today  = DateOnly.FromDateTime(DateTime.Today);
 
             foreach (var rule in rules)
             {
-                // Sum available qty (on-hand minus reserved) across all bins at this location
                 var balances = await _balanceRepo.GetByLocationAsync(rule.LocationId);
                 var currentQty = balances
                     .Where(b => b.ItemId == rule.ItemId)
                     .Sum(b => b.QuantityOnHand - b.ReservedQty);
 
-                if (currentQty < rule.MinLevel)
+                // ── Stock sufficient → auto-close any stale open/converted requests ──
+                if (currentQty >= rule.MinLevel)
                 {
-                    var alreadyOpen = await _repo.HasOpenRequestAsync(rule.LocationId, rule.ItemId);
-                    if (!alreadyOpen)
+                    var stale = await _context.ReplenishmentRequests
+                        .Where(r => r.LocationId == rule.LocationId
+                                 && r.ItemId     == rule.ItemId
+                                 && (r.Status == 1 || r.Status == 2))
+                        .ToListAsync();
+                    if (stale.Any())
                     {
-                        var suggestedQty = rule.MaxLevel - currentQty;
-                        if (suggestedQty <= 0) suggestedQty = rule.MaxLevel;
-
-                        await _repo.AddAsync(new ReplenishmentRequest
-                        {
-                            LocationId = rule.LocationId,
-                            ItemId = rule.ItemId,
-                            SuggestedQty = suggestedQty,
-                            RuleId = rule.ReplenishmentRuleId,
-                            CreatedDate = DateTime.UtcNow,
-                            Status = 1  // Open
-                        });
-                        created++;
+                        stale.ForEach(r => r.Status = 3);
+                        await _context.SaveChangesAsync();
                     }
+                    continue;
                 }
+
+                // ── Stock still low — check if an active PO or manual TO is in progress ──
+                var alreadyOpen = await _repo.HasOpenRequestAsync(rule.LocationId, rule.ItemId);
+                if (alreadyOpen)
+                {
+                    var hasActiveTO = await _context.TransferOrders
+                        .AnyAsync(to => to.ToLocationId == rule.LocationId
+                                     && to.Status == 1
+                                     && to.TransferItems.Any(ti => ti.ItemId == rule.ItemId));
+
+                    var hasActivePO = await _context.PurchaseOrders
+                        .AnyAsync(po => po.LocationId == rule.LocationId
+                                     && po.PurchaseOrderStatusId != 3
+                                     && po.PurchaseItems.Any(pi => pi.ItemId == rule.ItemId));
+
+                    if (hasActiveTO || hasActivePO) { skipped++; continue; }
+
+                    // Stale requests — close them and fall through to raise a fresh PO
+                    var stale = await _context.ReplenishmentRequests
+                        .Where(r => r.LocationId == rule.LocationId
+                                 && r.ItemId     == rule.ItemId
+                                 && (r.Status == 1 || r.Status == 2))
+                        .ToListAsync();
+                    stale.ForEach(r => r.Status = 3);
+                    await _context.SaveChangesAsync();
+                }
+
+                // ── Create replenishment request ──
+                var suggestedQty = rule.MaxLevel - currentQty;
+                if (suggestedQty <= 0) suggestedQty = rule.MaxLevel;
+
+                var request = new ReplenishmentRequest
+                {
+                    LocationId   = rule.LocationId,
+                    ItemId       = rule.ItemId,
+                    SuggestedQty = suggestedQty,
+                    RuleId       = rule.ReplenishmentRuleId,
+                    CreatedDate  = DateTime.UtcNow,
+                    Status       = 1
+                };
+                await _repo.AddAsync(request);
+
+                // ── Always raise a PO — TOs are manual only ──────────────────────────
+                var vendor = await _context.PurchaseOrders
+                    .Where(po => po.PurchaseItems.Any(pi => pi.ItemId == rule.ItemId))
+                    .OrderByDescending(po => po.OrderDate)
+                    .Select(po => po.Vendor)
+                    .FirstOrDefaultAsync()
+                    ?? await _context.Vendors.FirstOrDefaultAsync();
+
+                if (vendor == null) continue; // No vendor configured — skip silently
+
+                var po = new PharmaStock.Models.PurchaseOrder
+                {
+                    VendorId              = vendor.VendorId,
+                    LocationId            = rule.LocationId,
+                    OrderDate             = today,
+                    ExpectedDate          = today.AddDays(7),
+                    PurchaseOrderStatusId = 1  // Draft
+                };
+                _context.PurchaseOrders.Add(po);
+                await _context.SaveChangesAsync();
+
+                var lastPrice = await _context.PurchaseItems
+                    .Where(pi => pi.ItemId == rule.ItemId && pi.UnitPrice > 0)
+                    .OrderByDescending(pi => pi.PurchaseOrder.OrderDate)
+                    .Select(pi => pi.UnitPrice)
+                    .FirstOrDefaultAsync();
+
+                _context.PurchaseItems.Add(new PharmaStock.Models.PurchaseItem
+                {
+                    PurchaseOrderId = po.PurchaseOrderId,
+                    ItemId          = rule.ItemId,
+                    OrderedQty      = suggestedQty,
+                    UnitPrice       = lastPrice
+                });
+                await _context.SaveChangesAsync();
+
+                request.Status = 2;
+                await _repo.UpdateAsync(request);
+                poCreated++;
             }
 
             return new RunCheckResultDTO
             {
-                Message = "Replenishment check complete",
-                NewRequestsCreated = created
+                Message               = "Replenishment check complete",
+                TransferOrdersCreated = 0,
+                PurchaseOrdersCreated = poCreated,
+                Skipped               = skipped
             };
         }
 
-        public async Task<ConvertToTransferOrderResultDTO?> ConvertToTransferOrderAsync(
-            int reqId, int fromLocationId = 1)
+        public async Task<ConvertToTransferOrderResultDTO?> ConvertToTransferOrderAsync(int reqId)
         {
             var req = await _repo.GetByIdWithDetailsAsync(reqId);
             if (req == null) return null;
             if (req.Status != 1) return null;  // Only convert Open requests
 
-            // Create the TransferOrder
-            var order = new TransferOrder
-            {
-                FromLocationId = fromLocationId,
-                ToLocationId = req.LocationId,
-                CreatedDate = DateTime.UtcNow,
-                Status = 1  // Open
-            };
-            _context.TransferOrders.Add(order);
-            await _context.SaveChangesAsync();
+            var today = DateOnly.FromDateTime(DateTime.Today);
 
-            // FEFO: pick earliest-expiry lot with available stock at source location
-            var balances = await _balanceRepo.GetByLocationAsync(fromLocationId);
-            var fefoBalance = balances
-                .Where(b => b.ItemId == req.ItemId && (b.QuantityOnHand - b.ReservedQty) > 0)
-                .OrderBy(b => b.InventoryLot?.ExpiryDate)
+            // ── Search ALL locations for available active non-expired stock ──────
+            var allBalances = await _balanceRepo.GetAllWithDetailsAsync();
+            var sourceBalance = allBalances
+                .Where(b => b.ItemId == req.ItemId
+                         && b.LocationId != req.LocationId          // not the requesting location itself
+                         && (b.QuantityOnHand - b.ReservedQty) > 0
+                         && b.InventoryLot != null
+                         && b.InventoryLot.Status == 1              // Active
+                         && b.InventoryLot.ExpiryDate > today)      // Not expired
+                .OrderBy(b => b.InventoryLot!.ExpiryDate)           // FEFO
                 .FirstOrDefault();
 
-            bool itemCreated = false;
-            if (fefoBalance != null)
+            req.Status = 2; // Mark as Converted regardless of outcome
+            await _repo.UpdateAsync(req);
+
+            // ── CASE 1: Stock found elsewhere → create Transfer Order ────────────
+            if (sourceBalance != null)
             {
+                var availableAtSource = sourceBalance.QuantityOnHand - sourceBalance.ReservedQty;
+                var transferQty = Math.Min(req.SuggestedQty, availableAtSource);
+
+                var order = new TransferOrder
+                {
+                    FromLocationId = sourceBalance.LocationId,
+                    ToLocationId = req.LocationId,
+                    CreatedDate = DateTime.UtcNow,
+                    Status = 1  // Open
+                };
+                _context.TransferOrders.Add(order);
+                await _context.SaveChangesAsync();
+
                 _context.TransferItems.Add(new TransferItem
                 {
                     TransferOrderId = order.TransferOrderId,
                     ItemId = req.ItemId,
-                    InventoryLotId = fefoBalance.InventoryLotId,
-                    Quantity = req.SuggestedQty
+                    InventoryLotId = sourceBalance.InventoryLotId,
+                    Quantity = transferQty  // Capped at what source actually has
                 });
                 await _context.SaveChangesAsync();
-                itemCreated = true;
+
+                var fromLoc = await _context.Locations.FindAsync(sourceBalance.LocationId);
+                var toLoc   = await _context.Locations.FindAsync(req.LocationId);
+
+                return new ConvertToTransferOrderResultDTO
+                {
+                    ActionTaken         = "TransferOrder",
+                    TransferOrderId     = order.TransferOrderId,
+                    FromLocationId      = sourceBalance.LocationId,
+                    FromLocationName    = fromLoc?.Name,
+                    ToLocationId        = req.LocationId,
+                    ToLocationName      = toLoc?.Name,
+                    TransferItemCreated = true,
+                    ReplenishmentRequestId = reqId,
+                    ItemId       = req.ItemId,
+                    ItemName     = req.Item?.Drug?.GenericName,
+                    SuggestedQty = req.SuggestedQty,
+                    Message      = $"Transfer Order created from {fromLoc?.Name} to {toLoc?.Name}."
+                };
             }
 
-            // Mark request as Converted (status 2)
-            req.Status = 2;
-            await _repo.UpdateAsync(req);
+            // ── CASE 2: No stock anywhere → create Purchase Order ────────────────
+            // Find default vendor from most recent PO for this item, or first vendor
+            var vendor = await _context.PurchaseOrders
+                .Where(po => po.PurchaseItems.Any(pi => pi.ItemId == req.ItemId))
+                .OrderByDescending(po => po.OrderDate)
+                .Select(po => po.Vendor)
+                .FirstOrDefaultAsync()
+                ?? await _context.Vendors.FirstOrDefaultAsync();
 
-            // Reload to get nav props for the response
-            var fromLocation = await _context.Locations.FindAsync(fromLocationId);
-            var toLocation = await _context.Locations.FindAsync(req.LocationId);
+            if (vendor == null)
+            {
+                return new ConvertToTransferOrderResultDTO
+                {
+                    ActionTaken = "Failed",
+                    ReplenishmentRequestId = reqId,
+                    ItemId = req.ItemId,
+                    ItemName = req.Item?.Drug?.GenericName,
+                    SuggestedQty = req.SuggestedQty,
+                    Message = "No stock found anywhere and no vendor available to raise a PO."
+                };
+            }
+
+            var po = new PharmaStock.Models.PurchaseOrder
+            {
+                VendorId    = vendor.VendorId,
+                LocationId  = req.LocationId,
+                OrderDate   = today,
+                ExpectedDate = today.AddDays(7),
+                PurchaseOrderStatusId = 1  // Draft
+            };
+            _context.PurchaseOrders.Add(po);
+            await _context.SaveChangesAsync();
+
+            // Pull last known unit price from previous POs for this item
+            var lastPrice = await _context.PurchaseItems
+                .Where(pi => pi.ItemId == req.ItemId && pi.UnitPrice > 0)
+                .OrderByDescending(pi => pi.PurchaseOrder.OrderDate)
+                .Select(pi => pi.UnitPrice)
+                .FirstOrDefaultAsync();
+
+            _context.PurchaseItems.Add(new PharmaStock.Models.PurchaseItem
+            {
+                PurchaseOrderId = po.PurchaseOrderId,
+                ItemId          = req.ItemId,
+                OrderedQty      = req.SuggestedQty,
+                UnitPrice       = lastPrice  // 0 if no previous PO exists
+            });
+            await _context.SaveChangesAsync();
+
+            var requestingLoc = await _context.Locations.FindAsync(req.LocationId);
 
             return new ConvertToTransferOrderResultDTO
             {
-                TransferOrderId = order.TransferOrderId,
-                FromLocationId = fromLocationId,
-                FromLocationName = fromLocation?.Name,
-                ToLocationId = req.LocationId,
-                ToLocationName = toLocation?.Name,
-                CreatedDate = order.CreatedDate,
-                Status = order.Status,
+                ActionTaken    = "PurchaseOrder",
+                PurchaseOrderId = po.PurchaseOrderId,
+                VendorName     = vendor.Name,
                 ReplenishmentRequestId = reqId,
-                ItemId = req.ItemId,
-                ItemName = req.Item?.Drug?.GenericName,
+                ItemId       = req.ItemId,
+                ItemName     = req.Item?.Drug?.GenericName,
                 SuggestedQty = req.SuggestedQty,
-                TransferItemCreated = itemCreated
+                Message      = $"No stock found anywhere. Purchase Order #{po.PurchaseOrderId} raised from vendor '{vendor.Name}' for {requestingLoc?.Name}."
             };
         }
 

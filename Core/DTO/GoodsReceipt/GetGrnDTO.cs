@@ -74,6 +74,8 @@ namespace PharmaStock.Core.DTO.GoodsReceipt
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public int OrderedQty { get; set; }
+        public int AcceptedQty { get; set; }       // total accepted across all previous GRNs
+        public int OutstandingQty { get; set; }    // OrderedQty - AcceptedQty
         public decimal UnitPrice { get; set; }
         public decimal TaxPct { get; set; }
     }

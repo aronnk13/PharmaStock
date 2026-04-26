@@ -12,10 +12,12 @@ namespace PharmaStock.Core.Services
     public class TransferOrderService : ITransferOrderService
     {
         private readonly ITransferOrderRepository _repo;
+        private readonly PharmaStockContext _context;
 
-        public TransferOrderService(ITransferOrderRepository repo)
+        public TransferOrderService(ITransferOrderRepository repo, PharmaStockContext context)
         {
             _repo = repo;
+            _context = context;
         }
 
         public async Task<TransferOrderResponseDTO> CreateTransferOrderAsync(CreateTransferOrderDTO dto)
@@ -73,9 +75,8 @@ namespace PharmaStock.Core.Services
                 Quantity = dto.Quantity
             };
 
-            // TransferItem uses its own generic repo
-            // You need to register IGenericRepository<TransferItem> in Program.cs
-            // or add AddTransferItemAsync to the repository
+            await _context.TransferItems.AddAsync(transferItem);
+            await _context.SaveChangesAsync();
 
             return new TransferItemResponseDTO
             {

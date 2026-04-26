@@ -14,28 +14,37 @@ namespace PharmaStock.Core.Services
             _repo = repo;
         }
 
+        // Only show active, non-expired lots with stock on hand.
+        // This mirrors the LotExpiryBackgroundService logic and covers the
+        // timing gap when a lot expires between daily job runs.
+        private static readonly Func<Models.InventoryBalance, bool> IsLive = b =>
+            b.QuantityOnHand > 0 &&
+            b.InventoryLot != null &&
+            b.InventoryLot.Status == 1 &&
+            b.InventoryLot.ExpiryDate > DateOnly.FromDateTime(DateTime.Today);
+
         public async Task<IEnumerable<InventoryBalanceDTO>> GetAllAsync()
         {
-            var balances = await _repo.GetAllAsync();
-            return balances.Select(Map);
+            var balances = await _repo.GetAllWithDetailsAsync();
+            return balances.Where(IsLive).Select(Map);
         }
 
         public async Task<IEnumerable<InventoryBalanceDTO>> GetByLocationAsync(int locationId)
         {
             var balances = await _repo.GetByLocationAsync(locationId);
-            return balances.Select(Map);
+            return balances.Where(IsLive).Select(Map);
         }
 
         public async Task<IEnumerable<InventoryBalanceDTO>> GetByItemAsync(int itemId)
         {
             var balances = await _repo.GetByItemAsync(itemId);
-            return balances.Select(Map);
+            return balances.Where(IsLive).Select(Map);
         }
 
         public async Task<IEnumerable<InventoryBalanceDTO>> GetLowStockAsync(int threshold)
         {
             var balances = await _repo.GetLowStockAsync(threshold);
-            return balances.Select(Map);
+            return balances.Where(IsLive).Select(Map);
         }
 
         private static InventoryBalanceDTO Map(Models.InventoryBalance b) => new()

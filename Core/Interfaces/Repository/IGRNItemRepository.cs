@@ -12,6 +12,6 @@ namespace PharmaStock.Core.Interfaces.Repository
         Task<Item?> GetItemByIdAsync(int itemId);
         Task<PurchaseItem?> GetPurchaseItemByIdAsync(int purchaseItemId);
         Task<(List<GRNItemResponseDTO>, int)> GetFilteredItemsAsync(GRNItemFilterDTO filter);
-        Task<bool> IsDuplicateBatchAsync(int goodsReceiptId, int itemId, int batchNumber);
+        Task<bool> IsDuplicateBatchAsync(int goodsReceiptId, int itemId, string batchNumber);
     }
 }

@@ -139,9 +139,8 @@ builder.Services.AddScoped<IInventoryLotRepository, InventoryLotRepository>();
 builder.Services.AddScoped<IReplenishmentRepository, ReplenishmentRepository>();
 builder.Services.AddScoped<IReplenishmentService, ReplenishmentService>();
 builder.Services.AddHostedService<ReplenishmentBackgroundService>();
+builder.Services.AddHostedService<LotExpiryBackgroundService>();
 
-builder.Services.AddScoped<IExpiryWatchRepository, ExpiryWatchRepository>();
-builder.Services.AddScoped<IExpiryWatchService, ExpiryWatchService>();
 
 builder.Services.AddScoped<IInventoryBalanceRepository, InventoryBalanceRepository>();
 builder.Services.AddScoped<IInventoryBalanceService, InventoryBalanceService>();
@@ -150,12 +149,8 @@ builder.Services.AddScoped<IInventoryDashboardService, InventoryDashboardService
 
 // QCO
 builder.Services.AddScoped<IQuarantineRepository, QuarantineRepository>();
-builder.Services.AddScoped<IRecallNoticeRepository, RecallNoticeRepository>();
 builder.Services.AddScoped<IStockAdjustmentRepository, StockAdjustmentRepository>();
-builder.Services.AddScoped<IColdChainLogRepository, ColdChainLogRepository>();
 builder.Services.AddScoped<IQuarantineService, QuarantineService>();
-builder.Services.AddScoped<IRecallNoticeService, RecallNoticeService>();
-builder.Services.AddScoped<IColdChainLogService, ColdChainLogService>();
 builder.Services.AddScoped<IQCODashboardService, QCODashboardService>();
 
 // Pharmacist

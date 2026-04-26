@@ -10,8 +10,7 @@ namespace PharmaStock.Core.DTO.PurchaseOrder
         [Required]
         public int LocationId { get; set; }
 
-        [Required]
-        public DateOnly OrderDate { get; set; }
+        public DateOnly OrderDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
         [Required]
         public DateOnly ExpectedDate { get; set; }

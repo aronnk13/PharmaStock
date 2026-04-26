@@ -31,7 +31,7 @@ namespace PharmaStock.Core.Services
             if (request.ReceivedDate > DateTime.UtcNow)
                 throw new ArgumentException("INVALID_DATE");
 
-            var openStatus = await _grnRepository.GetGrnStatusByCodeAsync("OPEN");
+            var openStatus = await _grnRepository.GetGrnStatusByCodeAsync("Open");
             if (openStatus == null)
                 throw new InvalidOperationException("INTERNAL_ERROR");
 
@@ -56,36 +56,8 @@ namespace PharmaStock.Core.Services
             if (grn == null)
                 throw new KeyNotFoundException("GRN_NOT_FOUND");
 
-            var openStatus     = await _grnRepository.GetGrnStatusByCodeAsync("OPEN");
-            var postedStatus   = await _grnRepository.GetGrnStatusByCodeAsync("POSTED");
-            var rejectedStatus = await _grnRepository.GetGrnStatusByCodeAsync("REJECTED");
-
+            var openStatus = await _grnRepository.GetGrnStatusByCodeAsync("Open");
             var openId     = openStatus!.GoodsReceiptStatusId;
-            var postedId   = postedStatus!.GoodsReceiptStatusId;
-            var rejectedId = rejectedStatus!.GoodsReceiptStatusId;
-
-            if (request.StatusId == postedId)
-            {
-                if (grn.Status != openId)
-                    throw new InvalidOperationException("GRN_NOT_OPEN");
-
-                var hasItems = await _grnRepository.HasGrnItemsAsync(grnId);
-                if (!hasItems)
-                    throw new InvalidOperationException("GRN_NO_ITEMS");
-
-                grn.Status = postedId;
-            }
-            else if (request.StatusId == rejectedId)
-            {
-                if (grn.Status != postedId)
-                    throw new InvalidOperationException("GRN_NOT_POSTED");
-
-                grn.Status = rejectedId;
-            }
-            else if (request.StatusId.HasValue)
-            {
-                throw new ArgumentException("INVALID_STATUS");
-            }
 
             if (request.ReceivedDate.HasValue)
             {
